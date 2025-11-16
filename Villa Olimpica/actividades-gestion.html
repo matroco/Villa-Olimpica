@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gestión de Actividades — Villa Olímpica</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #1d4ed8;
+            --accent: #22c55e;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            background: linear-gradient(180deg, #041033, #07132a);
+            color: #e6eef8;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 280px;
+            padding: 24px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            min-height: 100vh;
+        }
+
+        .menu-item {
+            padding: 8px 10px;
+            border-radius: 8px;
+            display: block;
+            color: #dbeafe;
+            text-decoration: none;
+            font-size: .92rem;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .card {
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .hidden-el {
+            display: none;
+        }
+
+        .small-muted {
+            color: rgba(230, 238, 248, 0.65);
+            font-size: .9rem;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .btn-primary {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
+        }
+
+        .btn-secondary {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.9);
+            color: #e5e7eb;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #020617;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            padding: 18px 20px;
+        }
+
+        .modal-footer {
+            padding: 12px 20px 16px;
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            color: #e5e7eb;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.6);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .close-btn {
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 999px;
+        }
+
+        .close-btn:hover {
+            background: rgba(148, 163, 184, 0.22);
+            color: #e5e7eb;
+        }
+
+        .modal-overlay.hidden-el {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="flex items-center gap-3 mb-6">
+                <div
+                    style="width:44px;height:44px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;">
+                    V
+                </div>
+                <div>
+                    <div class="font-bold">Villa Olímpica</div>
+                    <div class="text-xs small-muted">Gestión de Actividades</div>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a class="menu-item" href="menu-gestion.html#dashboard">Dashboard</a>
+
+                <div>
+                    <button id="toggleInst" type="button" class="menu-item flex items-center justify-between w-full">
+                        <span>Instalaciones</span>
+                        <svg id="chev" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="instList" class="mt-2 space-y-1 hidden-el"></div>
+                </div>
+
+                <a class="menu-item" href="reservas-gestion.html">Reservas</a>
+                <a class="menu-item" href="actividades-gestion.html">Actividades</a>
+            </nav>
+
+            <div class="mt-8">
+                <button id="btnLogout" class="w-full py-2 rounded text-white"
+                    style="background:linear-gradient(90deg,var(--primary),var(--accent));">
+                    Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold">Gestión de Actividades</h1>
+                    <p class="small-muted" id="userInfo">Cargando usuario…</p>
+                </div>
+                <div class="flex gap-3">
+                    <button id="btnNew" class="btn-primary text-sm">
+                        + Nueva actividad
+                    </button>
+                    <button id="btnRefresh" class="px-4 py-2 rounded bg-slate-700 text-sm">
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <section class="card">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="font-semibold text-lg">Listado de actividades</h2>
+                        <p class="small-muted text-sm">
+                            Administra las actividades programadas en la Villa Olímpica.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="border-b border-white/10 text-xs uppercase small-muted">
+                            <tr>
+                                <th class="py-2 pr-4 text-left">Fecha</th>
+                                <th class="py-2 pr-4 text-left">Hora</th>
+                                <th class="py-2 pr-4 text-left">Nombre</th>
+                                <th class="py-2 pr-4 text-left">Lugar</th>
+                                <th class="py-2 pr-4 text-left">Descripción</th>
+                                <th class="py-2 pr-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="actividadesBody" class="divide-y divide-white/10">
+                            <tr>
+                                <td colspan="6" class="py-4 small-muted text-center">
+                                    Cargando actividades...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <!-- MODAL CREAR / EDITAR ACTIVIDAD -->
+    <div id="modalActividad" class="modal-overlay hidden-el">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalTitulo" class="text-base font-semibold">Nueva actividad</h3>
+                    <p class="small-muted text-xs" id="modalSubtitulo">
+                        Registra o actualiza una actividad en el calendario interno.
+                    </p>
+                </div>
+                <button class="close-btn" onclick="cerrarModalActividad()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nombre de la actividad *</label>
+                    <input id="actNombre" class="form-input" placeholder="Ej: Torneo intercolegial" />
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="form-label">Fecha *</label>
+                        <input id="actFecha" type="date" class="form-input" />
+                    </div>
+                    <div>
+                        <label class="form-label">Hora</label>
+                        <input id="actHora" type="time" class="form-input" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Lugar</label>
+                    <input id="actLugar" class="form-input" placeholder="Cancha A, Sala de conferencias, etc." />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Descripción</label>
+                    <textarea id="actDescripcion" class="form-textarea"
+                        placeholder="Detalles relevantes sobre la actividad."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalActividad()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarActividad()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        const supabase = createClient(
+            "https://wzovzfrrgknhvcozektc.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo", // <- reemplaza por tu anon key
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true,
+                }
+            }
+        );
+
+        const instList = document.getElementById("instList");
+        const toggleInst = document.getElementById("toggleInst");
+        const chev = document.getElementById("chev");
+        const btnLogout = document.getElementById("btnLogout");
+        const userInfo = document.getElementById("userInfo");
+        const actividadesBody = document.getElementById("actividadesBody");
+        const btnRefresh = document.getElementById("btnRefresh");
+        const btnNew = document.getElementById("btnNew");
+
+        const modalActividad = document.getElementById("modalActividad");
+        const modalTitulo = document.getElementById("modalTitulo");
+        const actNombre = document.getElementById("actNombre");
+        const actFecha = document.getElementById("actFecha");
+        const actHora = document.getElementById("actHora");
+        const actLugar = document.getElementById("actLugar");
+        const actDescripcion = document.getElementById("actDescripcion");
+
+        // Estado del modal
+        let modoActividad = "create"; // "create" o "edit"
+        let idActividadActual = null;
+
+        // Sidebar instalaciones
+        if (toggleInst && instList && chev) {
+            toggleInst.addEventListener("click", () => {
+                instList.classList.toggle("hidden-el");
+                chev.classList.toggle("rotate-180");
+            });
+        }
+
+        async function cargarInstalacionesMenu() {
+            const { data, error } = await supabase
+                .from("instalaciones")
+                .select("nombre,codigo")
+                .order("nombre");
+
+            if (error || !data) return;
+
+            instList.innerHTML = "";
+            data.forEach(inst => {
+                const a = document.createElement("a");
+                a.className = "menu-item";
+                a.href = `instalacion.html?codigo=${encodeURIComponent(inst.codigo)}`;
+                a.textContent = inst.nombre;
+                instList.appendChild(a);
+            });
+        }
+
+        // Logout
+        if (btnLogout) {
+            btnLogout.addEventListener("click", async () => {
+                await supabase.auth.signOut();
+                window.location.href = "inicio.html";
+            });
+        }
+
+        // Verificar acceso y mostrar nombre/rol
+        async function verificarAcceso() {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                window.location.href = "inicio.html";
+                return;
+            }
+
+            const { data: perfil } = await supabase
+                .from("usuarios")
+                .select("nombre,email,rol")
+                .eq("email", user.email)
+                .single();
+
+            if (!perfil) {
+                window.location.href = "inicio.html";
+                return;
+            }
+
+            if (userInfo) {
+                userInfo.textContent = `${perfil.nombre} • ${perfil.rol}`;
+            }
+        }
+
+        // Cargar actividades
+        async function cargarActividades() {
+            actividadesBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-4 small-muted text-center">
+            Cargando actividades...
+          </td>
+        </tr>
+      `;
+
+            const { data, error } = await supabase
+                .from("actividades")
+                .select("id, nombre, fecha, hora, lugar, descripcion")
+                .order("fecha", { ascending: false })
+                .order("hora", { ascending: false });
+
+            if (error) {
+                console.error(error);
+                actividadesBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-4 text-red-300 text-center">
+              Error al cargar las actividades.
+            </td>
+          </tr>
+        `;
+                return;
+            }
+
+            if (!data || !data.length) {
+                actividadesBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-4 small-muted text-center">
+              No hay actividades registradas.
+            </td>
+          </tr>
+        `;
+                return;
+            }
+
+            actividadesBody.innerHTML = data.map(a => {
+                const horaTexto = a.hora ? a.hora.substring(0, 5) : "—";
+                return `
+          <tr>
+            <td class="py-2 pr-4 align-top">${a.fecha}</td>
+            <td class="py-2 pr-4 align-top">${horaTexto}</td>
+            <td class="py-2 pr-4 align-top">
+              <span class="font-semibold">${a.nombre}</span>
+            </td>
+            <td class="py-2 pr-4 align-top small-muted">
+              ${a.lugar ? a.lugar : "—"}
+            </td>
+            <td class="py-2 pr-4 align-top small-muted">
+              ${a.descripcion ? a.descripcion : "—"}
+            </td>
+            <td class="py-2 pr-0 align-top text-right">
+              <button class="px-2 py-0.5 rounded bg-slate-600 text-xs mr-2"
+                      onclick="window.editarActividad('${a.id}')">
+                Editar
+              </button>
+              <button class="px-2 py-0.5 rounded bg-red-600 text-xs"
+                      onclick="window.eliminarActividad('${a.id}')">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        `;
+            }).join("");
+        }
+
+        // Abrir modal (nuevo)
+        function abrirModalNuevo() {
+            modoActividad = "create";
+            idActividadActual = null;
+            modalTitulo.textContent = "Nueva actividad";
+            actNombre.value = "";
+            actFecha.value = "";
+            actHora.value = "";
+            actLugar.value = "";
+            actDescripcion.value = "";
+            modalActividad.classList.remove("hidden-el");
+        }
+
+        // Abrir modal (editar)
+        window.editarActividad = async (id) => {
+            modoActividad = "edit";
+            idActividadActual = id;
+            modalTitulo.textContent = "Editar actividad";
+
+            const { data, error } = await supabase
+                .from("actividades")
+                .select("id, nombre, fecha, hora, lugar, descripcion")
+                .eq("id", id)
+                .single();
+
+            if (error || !data) {
+                console.error(error);
+                alert("No se pudo cargar la actividad.");
+                return;
+            }
+
+            actNombre.value = data.nombre || "";
+            actFecha.value = data.fecha || "";
+            actHora.value = data.hora ? data.hora.substring(0, 5) : "";
+            actLugar.value = data.lugar || "";
+            actDescripcion.value = data.descripcion || "";
+
+            modalActividad.classList.remove("hidden-el");
+        };
+
+        // Cerrar modal
+        window.cerrarModalActividad = () => {
+            modalActividad.classList.add("hidden-el");
+        };
+
+        // Guardar (crear o editar)
+        window.guardarActividad = async () => {
+            const nombre = actNombre.value.trim();
+            const fecha = actFecha.value;
+            const hora = actHora.value || null;
+            const lugar = actLugar.value.trim() || null;
+            const descripcion = actDescripcion.value.trim() || null;
+
+            if (!nombre) {
+                alert("El nombre de la actividad es obligatorio.");
+                return;
+            }
+            if (!fecha) {
+                alert("La fecha es obligatoria.");
+                return;
+            }
+
+            if (modoActividad === "create") {
+                const { error } = await supabase
+                    .from("actividades")
+                    .insert({
+                        nombre,
+                        fecha,
+                        hora,
+                        lugar,
+                        descripcion
+                    });
+
+                if (error) {
+                    console.error(error);
+                    alert("Error al crear la actividad.");
+                    return;
+                }
+            } else if (modoActividad === "edit" && idActividadActual) {
+                const { error } = await supabase
+                    .from("actividades")
+                    .update({
+                        nombre,
+                        fecha,
+                        hora,
+                        lugar,
+                        descripcion
+                    })
+                    .eq("id", idActividadActual);
+
+                if (error) {
+                    console.error(error);
+                    alert("Error al actualizar la actividad.");
+                    return;
+                }
+            }
+
+            cerrarModalActividad();
+            await cargarActividades();
+        };
+
+        // Eliminar
+        window.eliminarActividad = async (id) => {
+            const ok = confirm("¿Seguro que deseas eliminar esta actividad?");
+            if (!ok) return;
+
+            const { error } = await supabase
+                .from("actividades")
+                .delete()
+                .eq("id", id);
+
+            if (error) {
+                console.error(error);
+                alert("Error al eliminar la actividad.");
+                return;
+            }
+
+            await cargarActividades();
+        };
+
+        // Botones
+        if (btnRefresh) {
+            btnRefresh.addEventListener("click", cargarActividades);
+        }
+        if (btnNew) {
+            btnNew.addEventListener("click", abrirModalNuevo);
+        }
+
+        // Init
+        (async () => {
+            await verificarAcceso();
+            await cargarInstalacionesMenu();
+            await cargarActividades();
+        })();
+    </script>
+</body>
+
+</html>

@@ -18,23 +18,78 @@
       margin:0;
     }
     .sidebar{
-      width:280px;
+      width:260px;
       padding:24px;
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-right:1px solid rgba(255,255,255,0.06);
       min-height:100vh;
     }
-    .menu-item {
+    .menu-item{
       padding:8px 10px;
       border-radius:8px;
       display:block;
-      color: #dbeafe;
+      color:#dbeafe;
       text-decoration:none;
+      font-size:.92rem;
     }
-    .menu-item:hover { background: rgba(255,255,255,0.05); }
-    .badge { background: rgba(255,255,255,0.04); padding:4px 8px; border-radius:999px; font-size:12px; }
-    .card { background: var(--glass); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.04); }
-    .hidden-el { display:none; }
-    .small-muted { color: rgba(230,238,248,0.65); font-size: .95rem; }
+    .menu-item:hover{
+      background:rgba(255,255,255,0.05);
+    }
+    .menu-item.active{
+      background:rgba(37,99,235,0.18);
+      color:#fff;
+    }
+    .small-muted{
+      color:rgba(230,238,248,0.65);
+      font-size:.9rem;
+    }
+    .card{
+      background:var(--glass);
+      border-radius:14px;
+      padding:18px 16px;
+      border:1px solid rgba(255,255,255,0.06);
+    }
+    .chip{
+      font-size:10px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(15,23,42,0.55);
+      border:1px solid rgba(148,163,184,0.25);
+    }
+    .status-pill{
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:10px;
+      border:1px solid rgba(148,163,184,0.4);
+    }
+    .status-pill.activo{
+      background:rgba(34,197,94,0.10);
+      color:#bbf7d0;
+      border-color:rgba(34,197,94,0.4);
+    }
+    .status-pill.inactivo{
+      background:rgba(248,113,113,0.10);
+      color:#fecaca;
+      border-color:rgba(248,113,113,0.4);
+    }
+    .badge-dot{
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:#22c55e;
+      box-shadow:0 0 0 4px rgba(34,197,94,0.26);
+    }
+    .scroll-soft::-webkit-scrollbar{
+      width:6px;
+      height:6px;
+    }
+    .scroll-soft::-webkit-scrollbar-track{
+      background:transparent;
+    }
+    .scroll-soft::-webkit-scrollbar-thumb{
+      background:rgba(148,163,184,0.5);
+      border-radius:999px;
+    }
   </style>
 </head>
 
@@ -43,12 +98,13 @@
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
-      <div class="flex items-center gap-3 mb-6">
-        <div style="width:44px;height:44px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;">V</div>
+      <div class="flex items-center gap-3 mb-8">
+        <div style="width:44px;height:44px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;">
+          V
+        </div>
         <div>
-          <div class="font-bold">Villa Olímpica</div>
-          <div class="text-xs small-muted">Panel de Gestión</div>
+          <div class="font-semibold">Villa Olímpica</div>
+          <div class="text-xs small-muted">Panel de gestión</div>
         </div>
       </div>
 
@@ -64,89 +120,123 @@
           <div id="instList" class="mt-2 space-y-1 hidden-el"></div>
         </div>
 
-        <a class="menu-item" href="#reservas">Reservas</a>
-        <a class="menu-item" href="#actividades">Actividades</a>
-        <a class="menu-item" href="#reportes">Reportes</a>
+        <a class="menu-item" href="reservas-gestion.html">Reservas</a>
+        <a class="menu-item" href="actividades-gestion.html">Actividades</a>
 
         <!-- Usuarios solo para administradores -->
         <a id="linkUsuarios" class="menu-item hidden-el" href="#usuarios">Usuarios</a>
       </nav>
 
-      <div class="mt-8">
-        <button id="btnLogout" class="w-full py-2 rounded text-white"
-                style="background:linear-gradient(90deg,var(--primary),var(--accent));">
+      <div class="mt-8 pt-4 border-t border-white/5">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-xs small-muted">Sesión activa</div>
+            <div id="userNameSide" class="text-sm font-semibold">—</div>
+          </div>
+          <span class="badge-dot"></span>
+        </div>
+        <button id="btnLogout" class="w-full py-2 rounded text-white text-sm" style="background:linear-gradient(90deg,var(--primary),var(--accent));">
           Cerrar sesión
         </button>
       </div>
-
     </aside>
 
-    <!-- MAIN -->
-    <main class="flex-1 p-8">
-
-      <div class="flex items-center justify-between mb-6">
+    <!-- MAIN AREA -->
+    <main class="flex-1 p-6 md:p-8">
+      <!-- Top bar -->
+      <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 class="text-2xl font-bold">Menú de Gestión</h1>
-          <div id="userInfo" class="small-muted">Cargando usuario…</div>
+          <h1 class="text-2xl md:text-3xl font-bold mb-1">Panel de Gestión</h1>
+          <p class="small-muted">Administra reservas, instalaciones, actividades y usuarios de la Villa Olímpica.</p>
         </div>
-        <button id="btnRefresh" class="px-4 py-2 rounded bg-green-500">Actualizar</button>
-      </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden md:block text-right">
+            <div id="userNameTop" class="text-sm font-semibold">—</div>
+            <div id="userRoleTop" class="text-xs small-muted">—</div>
+          </div>
+          <button id="btnIrPortal" class="px-3 py-1.5 rounded-md border border-white/10 text-xs small-muted">
+            Ver portal público
+          </button>
+        </div>
+      </header>
 
-      <!-- STATS -->
-      <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="card">
-          <div class="small-muted">Reservas activas</div>
-          <div id="countReservas" class="text-2xl font-bold">—</div>
+      <!-- KPI CARDS -->
+      <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="card flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="small-muted text-xs">Reservas hoy</span>
+            <span class="chip">Tiempo real</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <div id="countHoy" class="text-3xl font-bold">—</div>
+          </div>
+          <p class="small-muted text-xs">Reservas programadas para la fecha actual.</p>
         </div>
 
-        <div class="card">
-          <div class="small-muted">Instalaciones</div>
-          <div id="countInst" class="text-2xl font-bold">—</div>
+        <div class="card flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="small-muted text-xs">Instalaciones activas</span>
+          </div>
+          <div class="text-3xl font-bold" id="countInst">—</div>
+          <p class="small-muted text-xs">Espacios con disponibilidad para reservas.</p>
         </div>
 
-        <div class="card">
-          <div class="small-muted">Usuarios</div>
-          <div id="countUsers" class="text-2xl font-bold">—</div>
+        <div class="card flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="small-muted text-xs">Usuarios</span>
+          </div>
+          <div class="text-3xl font-bold" id="countUsers">—</div>
+          <p class="small-muted text-xs">Personas con acceso al panel de gestión.</p>
         </div>
       </section>
 
-      <!-- CONTENT -->
-      <section id="contentArea" class="space-y-6">
-
-        <!-- Reservas -->
-        <div id="reservasPanel" class="card">
+      <!-- MAIN CONTENT GRID -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Col 1: Reservas recientes -->
+        <div id="reservasPanel" class="card lg:col-span-2">
           <div class="flex justify-between items-center mb-3">
             <h3 class="font-semibold">Reservas recientes</h3>
-            <button class="px-3 py-1 rounded bg-white/10">Ver todas</button>
+            <button
+              class="px-3 py-1 rounded bg-white/10"
+              onclick="window.location.href='reservas-gestion.html'">
+              Ver todas
+            </button>
           </div>
           <div id="tblReservas" class="text-sm small-muted">Cargando...</div>
         </div>
 
-        <!-- Actividades -->
+        <!-- Col 2: Actividades -->
         <div id="actividadesPanel" class="card">
           <div class="flex justify-between items-center mb-3">
-            <h3 class="font-semibold">Actividades próximas</h3>
-            <button class="px-3 py-1 rounded bg-white/10">Ver todas</button>
+            <h3 class="font-semibold">Próximas actividades</h3>
+            <span class="chip">Calendario</span>
           </div>
-          <div id="tblAct" class="text-sm small-muted">Cargando...</div>
+          <div id="tblActividades" class="text-sm small-muted">Cargando...</div>
         </div>
 
-        <!-- Usuarios -->
+        <!-- Col 3: Reportes -->
+        <div id="reportesPanel" class="card lg:col-span-2">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold">Resumen de uso</h3>
+          </div>
+          <div id="tblReportes" class="text-sm small-muted">Cargando...</div>
+        </div>
+
+        <!-- Usuarios (solo admin) -->
         <div id="usuariosPanel" class="card hidden-el">
           <div class="flex justify-between items-center mb-3">
-            <h3 class="font-semibold">Usuarios</h3>
-            <button id="btnAddUser" class="px-3 py-1 rounded bg-blue-600 hidden-el">Agregar usuario</button>
+            <h3 class="font-semibold">Usuarios del sistema</h3>
           </div>
-          <div id="tblUsers" class="text-sm small-muted">Cargando...</div>
+          <div id="tblUsuarios" class="text-sm small-muted">Cargando...</div>
         </div>
-
       </section>
-
     </main>
   </div>
 
   <!-- Supabase Logic -->
   <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
 const supabase = createClient(
   "https://wzovzfrrgknhvcozektc.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo",
@@ -161,43 +251,51 @@ const supabase = createClient(
 
     // ELEMENTS
     const instList = document.getElementById("instList");
+    const navMenu = document.getElementById("navMenu");
+    const toggleInst = document.getElementById("toggleInst");
     const chev = document.getElementById("chev");
     const linkUsuarios = document.getElementById("linkUsuarios");
-    const usuariosPanel = document.getElementById("usuariosPanel");
-    const btnAddUser = document.getElementById("btnAddUser");
+    const userNameTop = document.getElementById("userNameTop");
+    const userRoleTop = document.getElementById("userRoleTop");
+    const userNameSide = document.getElementById("userNameSide");
+    const btnLogout = document.getElementById("btnLogout");
+    const btnIrPortal = document.getElementById("btnIrPortal");
 
-    // Toggle instalaciones
-    document.getElementById("toggleInst").onclick = () => {
-      instList.classList.toggle("hidden-el");
-      chev.classList.toggle("rotate-180");
-    };
-
-    // logout
-    document.getElementById("btnLogout").onclick = async () => {
-      await supabase.auth.signOut();
-      window.location.href = "inicio.html";
-    };
-
-    // Load instalaciones submenu
-    async function cargarInstalacionesMenu() {
-      const { data } = await supabase.from("instalaciones").select("nombre,codigo");
-      instList.innerHTML = "";
-
-      data.forEach(inst => {
-        instList.innerHTML += `
-          <a class="menu-item"
-             href="instalacion.html?codigo=${inst.codigo}">
-             ${inst.nombre}
-          </a>`;
+    // Helpers
+    function setActive(hash) {
+      if (!navMenu) return;
+      const links = navMenu.querySelectorAll("a.menu-item");
+      links.forEach(l => {
+        if (l.getAttribute("href") === hash) l.classList.add("active");
+        else l.classList.remove("active");
       });
-
-      document.getElementById("countInst").textContent = data.length;
     }
 
-    // verify access
-    async function verificarAcceso() {
-      const { data: { user } } = await supabase.auth.getUser();
+    function buildReservasHTML(reservas) {
+      if (!reservas || reservas.length === 0) {
+        return "<p class='small-muted text-xs'>No hay reservas registradas.</p>";
+      }
+      return `
+        <div class="max-h-64 overflow-y-auto scroll-soft space-y-2">
+          ${reservas.map(r => `
+            <div class="flex items-start justify-between gap-3 text-xs bg-slate-900/40 rounded-lg px-3 py-2">
+              <div>
+                <div class="font-semibold text-sm">${r.instalaciones?.nombre ?? "Instalación"}</div>
+                <div class="small-muted">${r.fecha} • ${r.hora_inicio} - ${r.hora_fin}</div>
+                <div class="small-muted mt-1">${r.descripcion ?? "Sin descripción"}</div>
+              </div>
+              <div class="text-right">
+                <span class="status-pill ${r.estado === "activa" ? "activo" : "inactivo"}">${r.estado}</span>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
 
+    // Cargar datos usuario + permisos
+    async function cargarUsuario() {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         window.location.href = "inicio.html";
         return;
@@ -205,70 +303,144 @@ const supabase = createClient(
 
       const { data: perfil } = await supabase
         .from("usuarios")
-        .select("nombre,email,rol")
+        .select("nombre, rol, email")
         .eq("email", user.email)
         .single();
 
-      if (!perfil) {
-        window.location.href = "inicio.html";
-        return;
-      }
+      if (perfil) {
+        userNameTop.textContent = perfil.nombre;
+        userRoleTop.textContent = perfil.rol;
+        userNameSide.textContent = perfil.nombre;
 
-      document.getElementById("userInfo").textContent =
-        `${perfil.nombre} • ${perfil.rol}`;
-
-      if (perfil.rol === "administrador") {
-        linkUsuarios.classList.remove("hidden-el");
-        usuariosPanel.classList.remove("hidden-el");
-        btnAddUser.classList.remove("hidden-el");
+        if (perfil.rol === "admin" && linkUsuarios) {
+          linkUsuarios.classList.remove("hidden-el");
+        }
       }
     }
 
-    // Load dashboard info
+    // Sidebar instalaciones dinámicas
+    async function cargarInstalacionesMenu() {
+      const { data, error } = await supabase
+        .from("instalaciones")
+        .select("id, nombre, codigo, estado")
+        .order("nombre");
+
+      if (error || !data) return;
+
+      instList.innerHTML = "";
+      data.forEach(inst => {
+        const a = document.createElement("a");
+        a.className = "menu-item flex items-center justify-between";
+        a.href = `instalacion.html?codigo=${encodeURIComponent(inst.codigo)}`;
+        a.innerHTML = `
+          <span>${inst.nombre}</span>
+          <span class="status-pill ${inst.estado === "activa" ? "activo" : "inactivo"}">${inst.estado}</span>
+        `;
+        instList.appendChild(a);
+      });
+    }
+
+    // Dashboard counts
     async function cargarDashboard() {
-      const { count: reservas } = await supabase.from("reservas").select("*", { count:"exact" });
-      const { count: users } = await supabase.from("usuarios").select("*", { count:"exact" });
+      const [{ data: reservasHoy }, { data: inst }, { data: users }] = await Promise.all([
+        supabase.rpc("count_reservas_hoy"),
+        supabase.from("instalaciones").select("id", { count: "exact", head: true }),
+        supabase.from("usuarios").select("id", { count: "exact", head: true }),
+      ]).catch(e => {
+        console.error(e);
+        return [{}, {}, {}];
+      });
 
-      document.getElementById("countReservas").textContent = reservas ?? 0;
-      document.getElementById("countUsers").textContent = users ?? 0;
+      const countHoy = document.getElementById("countHoy");
+      const countInst = document.getElementById("countInst");
+      const countUsers = document.getElementById("countUsers");
+
+      if (countHoy) countHoy.textContent = reservasHoy?.total ?? "0";
+      if (countInst) countInst.textContent = inst?.length ?? "0";
+      if (countUsers) countUsers.textContent = users?.length ?? "0";
     }
 
-    // Load recientes
+    // Listas paneles
     async function cargarListas() {
-      // reservas recientes
-      const { data: r } = await supabase
+      // Reservas recientes
+      const { data: reservas, error: errRes } = await supabase
         .from("reservas")
-        .select("fecha,hora_inicio,hora_fin,estado")
-        .order("created_at", { ascending:false })
+        .select("id, fecha, hora_inicio, hora_fin, estado, descripcion, instalaciones(nombre)")
+        .order("fecha", { ascending: false })
+        .order("hora_inicio", { ascending: false })
         .limit(8);
 
-      document.getElementById("tblReservas").innerHTML =
-        r.map(x => `<div class="border-b border-white/10 py-1">
-                      ${x.fecha} - ${x.hora_inicio} / ${x.hora_fin}
-                      <span class="small-muted">[${x.estado}]</span>
-                    </div>`).join("");
+      if (!errRes) {
+        document.getElementById("tblReservas").innerHTML = buildReservasHTML(reservas || []);
+      }
 
-      // actividades
-      const { data: a } = await supabase
-        .from("actividades")
-        .select("nombre,fecha,lugar,hora")
-        .gte("fecha", new Date().toISOString().split("T")[0])
-        .order("fecha")
-        .limit(8);
+      // Actividades y reportes se pueden completar luego según tus tablas
+      document.getElementById("tblActividades").innerHTML =
+        "<p class='small-muted text-xs'>Módulo de actividades pendiente de implementación.</p>";
 
-      document.getElementById("tblAct").innerHTML =
-        a.map(x => `<div class="border-b border-white/10 py-1">
-                      <b>${x.nombre}</b> — ${x.fecha} ${x.hora ?? ""}
-                    </div>`).join("");
+      document.getElementById("tblReportes").innerHTML =
+        "<p class='small-muted text-xs'>Próximamente: reportes de ocupación, horas de uso y top de instalaciones.</p>";
+
+      const tblUsuarios = document.getElementById("tblUsuarios");
+      if (tblUsuarios) {
+        const { data: usuarios, error: errUsr } = await supabase
+          .from("usuarios")
+          .select("nombre, email, rol")
+          .order("nombre");
+
+        if (!errUsr && usuarios) {
+          tblUsuarios.innerHTML = `
+            <div class="max-h-64 overflow-y-auto scroll-soft space-y-2">
+              ${usuarios.map(u => `
+                <div class="flex items-center justify-between text-xs bg-slate-900/40 rounded-lg px-3 py-2">
+                  <div>
+                    <div class="font-semibold">${u.nombre}</div>
+                    <div class="small-muted">${u.email}</div>
+                  </div>
+                  <span class="chip">${u.rol}</span>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        } else {
+          tblUsuarios.textContent = "No se pudieron cargar los usuarios.";
+        }
+      }
+    }
+
+    // Eventos de UI
+    if (toggleInst && chev) {
+      toggleInst.addEventListener("click", () => {
+        instList.classList.toggle("hidden-el");
+        chev.classList.toggle("rotate-180");
+      });
+    }
+
+    window.addEventListener("hashchange", () => {
+      setActive(location.hash || "#dashboard");
+    });
+
+    if (btnLogout) {
+      btnLogout.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "inicio.html";
+      });
+    }
+
+    if (btnIrPortal) {
+      btnIrPortal.addEventListener("click", () => {
+        window.location.href = "inicio.html";
+      });
     }
 
     // Init
-    (async () => {
-      await verificarAcceso();
-      await cargarInstalacionesMenu();
-      await cargarDashboard();
-      await cargarListas();
-    })();
+    window.addEventListener("DOMContentLoaded", () => {
+      setActive(location.hash || "#dashboard");
+      cargarUsuario();
+      cargarInstalacionesMenu();
+      cargarDashboard();
+      cargarListas();
+    });
 
   </script>
 

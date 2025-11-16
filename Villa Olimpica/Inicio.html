@@ -47,11 +47,11 @@
     }
 
     .title-gradient {
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-  background-clip: text; /* estándar: evita el error */
-  -webkit-background-clip: text; /* necesario para Chrome */
-  -webkit-text-fill-color: transparent;
-}
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
     /* Pabellón cards (no images) */
     .pab-card {
@@ -277,7 +277,11 @@
         <div class="card appear" data-appear>
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-xl font-semibold">Actividades Próximas</h3>
-            <button id="btnVerTodas" class="text-sm px-3 py-1 rounded-md border border-white/10 text-gray-200" onclick="location.href='actividades.html'">Ver todas</button>
+            <button id="btnVerTodas"
+                    class="text-sm px-3 py-1 rounded-md border border-white/10 text-gray-200"
+                    onclick="location.href='actividades-gestion.html'">
+              Ver todas
+            </button>
           </div>
 
           <div id="actividadesContainer" class="space-y-3">
@@ -338,7 +342,7 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-    // --- CONFIG: reemplaza si cambias credenciales
+    // --- CONFIG: usa tu mismo proyecto Supabase
     const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
 
@@ -371,7 +375,7 @@
       } catch { return d; }
     }
 
-    // Cargar página de actividades (offset-based)
+    // Cargar página de actividades (sin filtrar por fecha)
     async function cargarActividadesPage(reset = false) {
       if (reset) {
         page = 0;
@@ -380,12 +384,12 @@
       }
 
       const offset = page * PAGE_SIZE;
-      const hoy = new Date().toISOString().split('T')[0];
+
       const { data, error, count } = await supabase
         .from('actividades')
         .select('*', { count: 'exact' })
-        .gte('fecha', hoy)
         .order('fecha', { ascending: true })
+        .order('hora', { ascending: true })
         .range(offset, offset + PAGE_SIZE - 1);
 
       if (error) {
@@ -395,31 +399,35 @@
       }
 
       if (!data || data.length === 0) {
-        if (page === 0) actividadesContainer.innerHTML = '<div class="text-sm text-gray-400">No hay actividades programadas.</div>';
+        if (page === 0) {
+          actividadesContainer.innerHTML = '<div class="text-sm text-gray-400">No hay actividades registradas.</div>';
+        }
         btnCargarMas.classList.add('hidden');
         return;
       }
 
-      // insertar tarjetas con animación
       data.forEach((a, idx) => {
         const div = document.createElement('div');
         div.className = 'actividad-card appear';
-        div.style.transitionDelay = `${(idx % PAGE_SIZE) * 80}ms`; // stagger
+        div.style.transitionDelay = `${(idx % PAGE_SIZE) * 80}ms`;
         div.innerHTML = `
           <div class="flex items-start justify-between">
             <div>
               <div class="font-semibold">${a.nombre}</div>
               <div class="text-xs small-muted">${a.lugar || 'Lugar no definido'}</div>
             </div>
-            <div class="text-xs small-muted text-right">${formatDate(a.fecha)}${a.hora ? ' • ' + a.hora : ''}</div>
+            <div class="text-xs small-muted text-right">
+              ${a.fecha ? formatDate(a.fecha) : ''}${a.hora ? ' • ' + a.hora.substring(0,5) : ''}
+            </div>
           </div>
-          <p class="mt-2 text-sm text-gray-200">${(a.descripcion || '').substring(0, 200)}</p>
+          <p class="mt-2 text-sm text-gray-200">
+            ${(a.descripcion || '').substring(0, 200)}
+          </p>
         `;
         actividadesContainer.appendChild(div);
         io.observe(div);
       });
 
-      // show load-more button if there are more
       const totalLoaded = (page + 1) * PAGE_SIZE;
       if (count > totalLoaded) {
         btnCargarMas.classList.remove('hidden');
@@ -437,19 +445,16 @@
       await cargarActividadesPage(true);
     })();
 
-    // Pequeña mejora: permitir que las fichas de pabellones también usen animación click y foco
+    // Efecto rápido en links de pabellones
     document.querySelectorAll('.pab-card a').forEach(a => {
       a.addEventListener('click', (e) => {
-        // efecto rápido antes de navegar (accesible)
         const el = e.currentTarget;
         el.classList.add('opacity-80', 'scale-95');
-        setTimeout(() => {
-          // navegación: ya indicada en el href
-        }, 120);
+        setTimeout(() => {}, 120);
       });
     });
 
-    // Si quieres, puedes exponer una función global para recargar actividades desde el menu de gestión
+    // Función global por si luego quieres recargar desde otro lado
     window.recargarActividades = async () => {
       await cargarActividadesPage(true);
     };
