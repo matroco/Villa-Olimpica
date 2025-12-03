@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Villa Olímpica de Barahona — Inicio</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #16a34a;
+      --dark: #0f172a;
+      --glass: rgba(15, 23, 42, 0.7);
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: var(--dark);
+      background-image: 
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)),
+        url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=2000&q=80');
+      background-attachment: fixed;
+      background-size: cover;
+      color: #e2e8f0;
+    }
+
+    h1, h2, h3, .brand-font {
+      font-family: "Oswald", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-glass {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card-modern {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 1rem;
+      transition: all 0.3s ease;
+    }
+    .card-modern:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-5px);
+    }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #60a5fa, #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .expandable-content {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out;
+    }
+    .expandable-content.open {
+      opacity: 1;
+    }
+
+    /* Estilo para cursor en botones de acción */
+    .cursor-pointer { cursor: pointer; }
+  </style>
+</head>
+
+<body class="antialiased selection:bg-blue-600 selection:text-white">
+
+  <header class="fixed w-full top-0 z-50 nav-glass transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='inicio.html'">
+        <div class="w-10 h-10 rounded bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-white font-bold brand-font text-xl shadow-lg">
+          V
+        </div>
+        <div class="leading-tight hidden sm:block">
+          <div class="brand-font text-lg text-white">Villa Olímpica</div>
+          <div class="text-[10px] text-gray-400 font-sans tracking-wide">BARAHONA</div>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="inicio.html" class="text-sm font-medium text-white hover:text-blue-400 transition">INICIO</a>
+        <a href="#contacto" class="text-sm font-medium text-gray-300 hover:text-blue-400 transition">CONTACTO</a>
+        
+        <a id="nav-login-btn" href="login.html" class="text-sm font-medium text-gray-300 hover:text-blue-400 transition">
+          INICIAR SESIÓN
+        </a>
+
+        <button onclick="verificarYReservar('reservas.html')" 
+                class="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-900/50 transition transform hover:scale-105">
+          RESERVAR AHORA
+        </button>
+      </nav>
+
+      <button class="md:hidden text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="hidden md:hidden bg-slate-900 border-t border-slate-800">
+      <div class="px-6 py-4 flex flex-col gap-4">
+        <a href="inicio.html" class="text-gray-200">Inicio</a>
+        <a href="#contacto" class="text-gray-200">Contacto</a>
+        <a href="login.html" class="text-gray-200">Iniciar Sesión</a>
+        <button onclick="verificarYReservar('reservas.html')" class="text-blue-400 font-bold text-left">Reservar Ahora</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="pt-32 pb-16 md:pt-48 md:pb-24 px-6 text-center max-w-5xl mx-auto relative z-10">
+    <span class="inline-block py-1 px-3 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-wider mb-6">
+      COMPLEJO DEPORTIVO VILLA CENTRAL
+    </span>
+    <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
+      EL CORAZÓN DEL <br/>
+      <span class="text-gradient">DEPORTE EN EL SUR</span>
+    </h1>
+    <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+      Un legado histórico renovado para el desarrollo de atletas y el bienestar de nuestra comunidad.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <button onclick="verificarYReservar('reservas.html')" 
+              class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg text-white font-bold tracking-wide shadow-lg shadow-blue-900/40 hover:shadow-blue-600/40 hover:-translate-y-1 transition-all">
+        HACER UNA RESERVA
+      </button>
+      <a href="#historia" class="px-8 py-4 bg-slate-800/50 border border-slate-600 rounded-lg text-white font-semibold hover:bg-slate-700 transition-colors backdrop-blur-sm">
+        CONOCER MÁS
+      </a>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-6 space-y-20 pb-20">
+
+    <section id="historia" class="card-modern p-8 md:p-12 relative overflow-hidden group">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -z-10 group-hover:bg-blue-500/20 transition duration-700"></div>
+
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <h2 class="text-3xl text-white">Nuestra Historia</h2>
+        <div class="h-1 w-20 bg-blue-600 rounded mt-2 md:mt-0"></div>
+      </div>
+
+      <div class="text-gray-300 leading-relaxed space-y-4">
+        <p class="font-medium text-lg text-gray-100">
+          En el distrito municipal de Villa Central se encuentran las instalaciones del complejo deportivo de Barahona. Construido en el gobierno de Don Antonio Guzmán Fernández (1978-1982) como un clamor de la sociedad barahonera.
+        </p>
+
+        <div id="historia-full" class="expandable-content space-y-4 text-gray-300">
+          <p>
+            Dejó una de las mejores y más completas instalaciones en todo el país y el área del Caribe. Fue sede de los <strong>V Juegos Nacionales celebrados en 1981</strong>, un evento que llenó de fiesta y colorido la provincia.
+          </p>
+          <p>
+            Para el año 2009 fue anunciado por las autoridades su remodelación y remozamiento, a cargo de la OISOE y adjudicada a la compañía privada DIPRECALT. Sin embargo, unos pocos meses después los trabajos fueron paralizados y la obra dejada en el olvido.
+          </p>
+          <p>
+            Hoy en día, la Villa Olímpica busca renacer a través de la digitalización. Esta plataforma es el primer paso para un <strong>Sistema de Administración Integral</strong> que permita organizar reservas y eventos de forma transparente.
+          </p>
+        </div>
+      </div>
+
+      <button onclick="toggleSection('historia-full', this)" class="mt-6 text-blue-400 font-bold hover:text-blue-300 flex items-center gap-2 group/btn">
+        <span>Leer historia completa</span>
+        <svg class="w-4 h-4 transform group-hover/btn:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="card-modern p-8 relative overflow-hidden">
+        <div class="absolute top-4 right-4 text-4xl opacity-10">🎯</div>
+        <h3 class="text-xl text-white mb-4 border-l-4 border-blue-500 pl-3">Misión</h3>
+        <p class="text-gray-400 text-sm leading-relaxed">
+          Promover el desarrollo integral del deporte y la recreación en la región Sur, brindando instalaciones seguras, modernas y funcionales.
+        </p>
+      </div>
+      <div class="card-modern p-8 relative overflow-hidden">
+        <div class="absolute top-4 right-4 text-4xl opacity-10">👁️</div>
+        <h3 class="text-xl text-white mb-4 border-l-4 border-green-500 pl-3">Visión</h3>
+        <p class="text-gray-400 text-sm leading-relaxed">
+          Ser reconocida como el principal centro deportivo del Sur, destacándose por su eficiencia administrativa y gestión moderna.
+        </p>
+      </div>
+      <div class="card-modern p-8 relative overflow-hidden">
+        <div class="absolute top-4 right-4 text-4xl opacity-10">💎</div>
+        <h3 class="text-xl text-white mb-4 border-l-4 border-purple-500 pl-3">Valores</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <span class="flex items-center gap-2 text-sm text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Disciplina</span>
+          <span class="flex items-center gap-2 text-sm text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Respeto</span>
+          <span class="flex items-center gap-2 text-sm text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Excelencia</span>
+          <span class="flex items-center gap-2 text-sm text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Integridad</span>
+          <span class="flex items-center gap-2 text-sm text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Inclusión</span>
+          <span class="flex items-center gap-2 text-sm text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Colaboración</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <h2 class="text-3xl text-white">Nuestras Instalaciones</h2>
+          <p class="text-gray-400 mt-2">Haz clic en "Ver detalles" para reservar un área.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <article class="card-modern p-6 group">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition">Palacio de los Deportes</h3>
+            <span class="text-2xl">🏀</span>
+          </div>
+          <button onclick="togglePabellon('pab-palacio', this)" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-white border-b border-transparent hover:border-white transition pb-0.5">
+            + Ver detalles
+          </button>
+          <div id="pab-palacio" class="expandable-content mt-4 border-t border-gray-700/50 pt-4">
+            <p class="text-sm text-gray-300 mb-4">Pensado para baloncesto y eventos de sala. Graderías individuales.</p>
+            <button onclick="verificarYReservar('reservar-area.html?instalacion=palacio_deportes')" class="block w-full py-2 rounded bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white transition text-sm font-bold">
+              Reservar Área
+            </button>
+          </div>
+        </article>
+
+        <article class="card-modern p-6 group">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-white group-hover:text-red-400 transition">Pabellón de Gimnasia</h3>
+            <span class="text-2xl">🤸</span>
+          </div>
+          <button onclick="togglePabellon('pab-gimnasia', this)" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-white border-b border-transparent hover:border-white transition pb-0.5">
+            + Ver detalles
+          </button>
+          <div id="pab-gimnasia" class="expandable-content mt-4 border-t border-gray-700/50 pt-4">
+            <p class="text-sm text-gray-300 mb-4">Área de combate, halterofilia y taekwondo.</p>
+            <button onclick="verificarYReservar('reservar-area.html?instalacion=pabellon_gimnasia')" class="block w-full py-2 rounded bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition text-sm font-bold">
+              Reservar Área
+            </button>
+          </div>
+        </article>
+
+        <article class="card-modern p-6 group">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-white group-hover:text-cyan-400 transition">Piscina Olímpica</h3>
+            <span class="text-2xl">🏊</span>
+          </div>
+          <button onclick="togglePabellon('pab-piscina', this)" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-white border-b border-transparent hover:border-white transition pb-0.5">
+            + Ver detalles
+          </button>
+          <div id="pab-piscina" class="expandable-content mt-4 border-t border-gray-700/50 pt-4">
+            <p class="text-sm text-gray-300 mb-4">Actualmente inactiva. Revisa disponibilidad para eventos especiales.</p>
+            <button onclick="verificarYReservar('reservar-area.html?instalacion=piscina_olimpica')" class="block w-full py-2 rounded bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600 hover:text-white transition text-sm font-bold">
+              Consultar
+            </button>
+          </div>
+        </article>
+
+        <article class="card-modern p-6 group">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-white group-hover:text-green-400 transition">Campo y Pista</h3>
+            <span class="text-2xl">🏃</span>
+          </div>
+          <button onclick="togglePabellon('pab-campo', this)" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-white border-b border-transparent hover:border-white transition pb-0.5">
+            + Ver detalles
+          </button>
+          <div id="pab-campo" class="expandable-content mt-4 border-t border-gray-700/50 pt-4">
+            <p class="text-sm text-gray-300 mb-4">Atletismo, caminatas y ejercicio al aire libre.</p>
+            <button onclick="verificarYReservar('reservar-area.html?instalacion=campo_pista')" class="block w-full py-2 rounded bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white transition text-sm font-bold">
+              Reservar Área
+            </button>
+          </div>
+        </article>
+
+        <article class="card-modern p-6 group">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-white group-hover:text-yellow-400 transition">Canchas al Aire Libre</h3>
+            <span class="text-2xl">🎾</span>
+          </div>
+          <button onclick="togglePabellon('pab-canchas', this)" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-white border-b border-transparent hover:border-white transition pb-0.5">
+            + Ver detalles
+          </button>
+          <div id="pab-canchas" class="expandable-content mt-4 border-t border-gray-700/50 pt-4">
+            <p class="text-sm text-gray-300 mb-4">Baloncesto, Voleibol y Tenis.</p>
+            <button onclick="verificarYReservar('reservar-area.html?instalacion=canchas_aire_libre')" class="block w-full py-2 rounded bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600 hover:text-white transition text-sm font-bold">
+              Reservar Área
+            </button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      
+      <div class="card-modern p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl text-white font-bold flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            Próximas Actividades
+          </h3>
+          <a href="actividades-gestion.html" class="text-xs text-blue-400 hover:text-white transition">Ver calendario</a>
+        </div>
+        <div id="actividadesContainer" class="space-y-3 min-h-[200px]">
+          <div class="text-sm text-gray-500 italic p-4 text-center">Cargando eventos...</div>
+        </div>
+        <button id="btnCargarMas" class="w-full mt-4 py-2 text-xs font-semibold text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded hidden">
+          Cargar más eventos
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="card-modern p-1 overflow-hidden h-[350px]">
+          <iframe 
+            title="Ubicación Villa Olímpica"
+            class="w-full h-full rounded-lg grayscale hover:grayscale-0 transition duration-700"
+            style="border:0" 
+            loading="lazy" 
+            allowfullscreen 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3823.9722259619493!2d-71.11154822501753!3d18.20737888267757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8eecaef63b41f7d9%3A0xbcdbe7d441e9339!2sVilla%20Ol%C3%ADmpica%20de%20Barahona!5e0!3m2!1ses!2sdo!4v1731011500000!5m2!1ses!2sdo">
+          </iframe>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-500/20">
+            <div class="text-blue-400 text-xs font-bold uppercase mb-1">Dirección</div>
+            <div class="text-gray-200 text-sm">Villa Central, Barahona</div>
+          </div>
+          <div class="bg-green-900/30 p-4 rounded-lg border border-green-500/20">
+            <div class="text-green-400 text-xs font-bold uppercase mb-1">Horario</div>
+            <div class="text-gray-200 text-sm">06:00 AM - 09:00 PM</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer id="contacto" class="border-t border-white/5 bg-black/40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="col-span-1 md:col-span-2">
+          <h4 class="brand-font text-2xl text-white mb-4">VILLA OLÍMPICA</h4>
+          <p class="text-gray-400 text-sm max-w-sm">
+            Impulsando el futuro del deporte en el Sur.
+          </p>
+        </div>
+        <div>
+          <h5 class="text-white font-bold mb-3">Enlaces</h5>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><button onclick="verificarYReservar('reservas.html')" class="hover:text-blue-400 text-left">Reservar Instalación</button></li>
+            <li><a href="login.html" class="hover:text-blue-400">Acceso Administrativo</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-white font-bold mb-3">Contacto</h5>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li>Villa Central, Barahona</li>
+            <li>Tel: (809) 000-0000</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-white/5 mt-10 pt-6 text-center text-xs text-gray-600">
+        © 2024 Villa Olímpica de Barahona.
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+    const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // --- FUNCIÓN CLAVE: Verificar usuario antes de reservar ---
+    window.verificarYReservar = async (urlDestino) => {
+      // 1. Verificar sesión actual
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        // 2. Si está logueado, ir a la reserva
+        window.location.href = urlDestino;
+      } else {
+        // 3. Si NO está logueado, alerta y redirigir a Login
+        Swal.fire({
+          title: 'Registro Requerido',
+          text: 'Para realizar una reserva debes iniciar sesión o registrarte.',
+          icon: 'info',
+          confirmButtonText: 'Ir a Iniciar Sesión',
+          confirmButtonColor: '#2563eb',
+          background: '#1e293b',
+          color: '#fff'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Guardamos a donde quería ir para (opcionalmente) redirigirlo luego
+            localStorage.setItem('redirectAfterLogin', urlDestino);
+            window.location.href = 'login.html';
+          }
+        });
+      }
+    };
+
+    // --- INTERFAZ DE USUARIO ---
+
+    // 1. Chequear estado al cargar para cambiar botón de Navbar
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const loginBtn = document.getElementById('nav-login-btn');
+      
+      if (session) {
+        loginBtn.innerText = "CERRAR SESIÓN";
+        loginBtn.href = "#";
+        loginBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await supabase.auth.signOut();
+          window.location.reload(); // Recargar página al salir
+        });
+      }
+    })();
+
+    // 2. Expandir Historia
+    window.toggleSection = function(id, btn) {
+      const el = document.getElementById(id);
+      const isOpen = el.style.maxHeight;
+      if (isOpen) {
+        el.style.maxHeight = null;
+        el.classList.remove('open');
+        btn.querySelector('span').innerText = 'Leer historia completa';
+        btn.querySelector('svg').style.transform = 'rotate(0deg)';
+      } else {
+        el.style.maxHeight = el.scrollHeight + "px";
+        el.classList.add('open');
+        btn.querySelector('span').innerText = 'Mostrar menos';
+        btn.querySelector('svg').style.transform = 'rotate(180deg)';
+      }
+    };
+
+    // 3. Expandir Pabellones
+    window.togglePabellon = function(id, btn) {
+      const el = document.getElementById(id);
+      const isExpanded = el.style.maxHeight;
+      
+      // Cerrar otros
+      document.querySelectorAll('.expandable-content').forEach(d => {
+        if(d.id !== id && d.id !== 'historia-full') {
+           d.style.maxHeight = null; 
+           d.classList.remove('open');
+        }
+      });
+
+      if (isExpanded) {
+        el.style.maxHeight = null;
+        el.classList.remove('open');
+        btn.innerText = "+ VER DETALLES";
+      } else {
+        el.style.maxHeight = el.scrollHeight + "px";
+        el.classList.add('open');
+        btn.innerText = "- OCULTAR";
+      }
+    };
+
+    // 4. Cargar Actividades
+    const actividadesContainer = document.getElementById('actividadesContainer');
+    const btnCargarMas = document.getElementById('btnCargarMas');
+    let page = 0;
+    const PAGE_SIZE = 4;
+
+    function formatDate(d) {
+      try {
+        const date = new Date(d);
+        return date.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' });
+      } catch { return d; }
+    }
+
+    async function cargarActividades() {
+      const offset = page * PAGE_SIZE;
+      const { data, error, count } = await supabase
+        .from('actividades')
+        .select('*', { count: 'exact' })
+        .order('fecha', { ascending: true })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error(error); return;
+      }
+      if (page === 0) actividadesContainer.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        if (page === 0) actividadesContainer.innerHTML = '<div class="text-gray-500 text-sm p-4 text-center">No hay actividades próximas.</div>';
+        btnCargarMas.classList.add('hidden');
+        return;
+      }
+
+      data.forEach((a) => {
+        const div = document.createElement('div');
+        div.className = 'bg-white/5 border border-white/5 rounded p-3 flex gap-3 hover:bg-white/10 transition cursor-default';
+        div.innerHTML = `
+          <div class="flex-shrink-0 w-12 text-center bg-blue-900/40 rounded p-1 flex flex-col justify-center border border-blue-500/20">
+             <span class="text-xs text-blue-300 font-bold uppercase block">${a.fecha ? formatDate(a.fecha).split(' ')[1] : ''}</span>
+             <span class="text-lg text-white font-bold leading-none">${a.fecha ? formatDate(a.fecha).split(' ')[0] : ''}</span>
+          </div>
+          <div class="flex-1">
+             <h4 class="text-sm font-bold text-gray-200">${a.nombre}</h4>
+             <div class="text-[10px] text-gray-500 mt-1 flex items-center gap-2">
+                <span>📍 ${a.lugar || 'Villa Olímpica'}</span>
+                <span>⏰ ${a.hora ? a.hora.substring(0,5) : ''}</span>
+             </div>
+          </div>
+        `;
+        actividadesContainer.appendChild(div);
+      });
+
+      if (count > (page + 1) * PAGE_SIZE) btnCargarMas.classList.remove('hidden');
+      page++;
+    }
+
+    btnCargarMas.addEventListener('click', cargarActividades);
+    cargarActividades(); 
+  </script>
+</body>
+</html>

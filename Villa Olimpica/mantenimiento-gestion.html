@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mantenimiento — Villa Olímpica</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul Institucional/Deportivo */
+            --secondary: #10b981; /* Verde Acento Moderno */
+            --bg-dark: #0f172a; /* Azul Oscuro Profundo */
+            --card-bg: #1a233b; /* Fondo de tarjeta sutil */
+        }
+
+        body {
+            margin: 0;
+            /* Fondo deportivo/institucional */
+            background: linear-gradient(180deg, var(--bg-dark), #0f172a); 
+            color: white;
+            font-family: "Inter", sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Campos de formulario */
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+        /* Tarjetas de Contenido */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .muted {
+            color: #94a3b8;
+        }
+
+        /* Botones de acción principal */
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #1c458a;
+        }
+        
+        .btn-secondary {
+            background: #475569;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: #334155;
+        }
+        
+        .btn-accent {
+            background: var(--secondary);
+            color: #0f172a; /* Texto oscuro para contraste */
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn-accent:hover {
+            background: #059669;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1f2937; /* Fondo de modal oscuro */
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="min-h-screen">
+        
+        <header class="p-4 flex justify-between items-center border-b border-white/10" style="background: #1e293b;">
+            <div class="flex items-center gap-3">
+                <div style="width:40px;height:40px;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;">
+                    VO
+                </div>
+                <div class="font-extrabold text-xl">Mantenimiento de Instalaciones</div>
+            </div>
+            
+            <button id="btnAtras" class="py-2 px-4 rounded-lg text-white font-semibold text-sm transition-colors"
+                style="background:var(--secondary);">
+                ← Atrás
+            </button>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto">
+            <h1 class="text-3xl font-extrabold mb-8" style="color:var(--secondary);">Panel de Control Operacional</h1>
+
+            <div class="card mb-8">
+                <h2 class="text-xl font-bold mb-4">Selección de Instalación</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1">
+                        <label class="block">
+                            <span class="muted text-sm font-medium block mb-2">Instalación a gestionar</span>
+                            <select id="instalacion" class="form-control text-base"></select>
+                        </label>
+                    </div>
+                    
+                    <div id="infoInstalacion" class="md:col-span-2 p-3 border-l-4 border-white/20 hidden">
+                        <p class="font-bold text-lg" id="instNombre"></p>
+                        <p class="muted text-sm" id="instDescripcion"></p>
+                        <p class="muted text-sm mt-1">Estado actual: <span id="instEstado" class="font-semibold"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="panelMantenimiento" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4" style="color:var(--primary);">Registro Rápido</h2>
+                        <p class="muted text-sm mb-4">Ingrese un nuevo registro de mantenimiento.</p>
+
+                        <input type="hidden" id="mantEditId">
+
+                        <label class="block mb-2"><span class="muted text-sm">Título del trabajo</span>
+                            <input id="mantTitulo" class="form-control mt-1" placeholder="Ej: Reparación de bomba de piscina" />
+                        </label>
+
+                        <label class="block mb-2"><span class="muted text-sm">Descripción del trabajo</span>
+                            <textarea id="mantDesc" class="form-control mt-1 h-20" placeholder="Detalles de lo realizado o pendiente..."></textarea>
+                        </label>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <label class="block"><span class="muted text-sm">Fecha</span>
+                                <input id="mantFecha" type="date" class="form-control mt-1" />
+                            </label>
+                            
+                            <label class="block"><span class="muted text-sm">Estado</span>
+                                <select id="mantEstado" class="form-control mt-1">
+                                    <option value="">-- Estado --</option>
+                                    <option value="pendiente">🟠 Pendiente</option>
+                                    <option value="en proceso">🟡 En Proceso</option>
+                                    <option value="completado">🟢 Completado</option>
+                                </select>
+                            </label>
+                        </div>
+                        
+                        <button onclick="guardarMantenimiento()" class="btn-primary w-full text-base">
+                            Guardar Registro
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-2">
+                    <h2 class="text-xl font-bold mb-4" style="color:var(--primary);">Historial de Mantenimiento</h2>
+                    <div id="mantenimientoLista" class="space-y-4">
+                        <p class='muted card'>Seleccione una instalación para ver su historial.</p>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-mant" class="modal-overlay" style="display:none;">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                <h3 class="text-2xl font-bold">Detalle / Edición</h3>
+                <button onclick="cerrarModalMantenimiento()" class="text-3xl text-gray-400 hover:text-white transition-colors leading-none">&times;</button>
+            </div>
+            
+            <div id="modal-body-content" class="space-y-4">
+                </div>
+            
+            <div class="mt-6 text-right space-x-3">
+                <button onclick="cerrarModalMantenimiento()" class="btn-secondary py-2 px-4">
+                    Cancelar
+                </button>
+                <button id="modalGuardarBtn" onclick="guardarMantenimientoFromModal()" class="btn-primary py-2 px-4">
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        // NOTA: Utilizando las claves de Supabase proporcionadas originalmente
+        const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const s = id => document.getElementById(id);
+        
+        const estadoMap = {
+            "pendiente": { text: "Pendiente", color: "text-orange-400", emoji: "🟠" },
+            "en proceso": { text: "En Proceso", color: "text-yellow-400", emoji: "🟡" },
+            "completado": { text: "Completado", color: "text-green-400", emoji: "🟢" }
+        };
+
+        /* =====================
+            VALIDACIÓN DE FECHA
+        ======================*/
+        function setFechaMinimaHoy() {
+            // Obtiene la fecha de hoy en formato YYYY-MM-DD
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const minDate = `${year}-${month}-${day}`;
+
+            // Aplica el atributo 'min' al campo de fecha del formulario principal
+            const inputFecha = s("mantFecha");
+            if (inputFecha) {
+                inputFecha.setAttribute('min', minDate);
+            }
+            
+            return minDate;
+        }
+
+
+        /* =====================
+            CARGA DE DATOS
+        ======================*/
+
+        async function cargarInstalaciones() {
+            const { data } = await supabase.from("instalaciones").select("*").order("nombre");
+            const sel = s("instalacion");
+            sel.innerHTML = '<option value="">-- Seleccione una instalación --</option>';
+            data.forEach(i => {
+                const opt = document.createElement("option");
+                opt.value = i.id;
+                opt.textContent = i.nombre;
+                sel.appendChild(opt);
+            });
+        }
+
+        async function actualizarInfoInstalacion() {
+            const id = s("instalacion").value;
+            const info = s("infoInstalacion");
+            
+            if (!id) {
+                s("mantenimientoLista").innerHTML = "<p class='muted card'>Seleccione una instalación para ver su historial.</p>";
+                return info.classList.add("hidden");
+            }
+
+            const { data } = await supabase.from("instalaciones").select("*").eq("id", id).single();
+
+            s("instNombre").textContent = s("instalacion").selectedOptions[0].textContent;
+            s("instDescripcion").textContent = data.descripcion || "Sin descripción.";
+            s("instEstado").textContent = data.estado; 
+            info.classList.remove("hidden");
+
+            cargarMantenimientos();
+        }
+
+        async function cargarMantenimientos() {
+            const id = s("instalacion").value;
+            const cont = s("mantenimientoLista");
+
+            if (!id) return;
+
+            const { data, error } = await supabase
+                .from("mantenimientos_instalacion") // 👈 ¡CORRECCIÓN DE NOMBRE DE TABLA!
+                .select("*")
+                .eq("instalacion_id", id)
+                .order("fecha", { ascending: false });
+                
+            if (error) { console.error("Error cargando mantenimientos:", error); return; }
+
+            cont.innerHTML = "";
+
+            if (data.length === 0) {
+                cont.innerHTML = "<p class='muted card'>No hay mantenimientos registrados para esta instalación.</p>";
+                return;
+            }
+
+            data.forEach(m => {
+                const div = document.createElement("div");
+                const estado = estadoMap[m.estado] || { text: m.estado, color: "text-white", emoji: "⚫" };
+                const fechaFormat = new Date(m.fecha).toLocaleDateString('es-ES');
+                
+                div.className = "card flex justify-between items-center transition duration-200 hover:shadow-lg";
+                div.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-lg" style="color:var(--secondary);">${m.titulo}</p>
+                        <p class="text-xs ${estado.color} font-semibold mt-1">${estado.emoji} ${estado.text}</p>
+                        <p class="text-sm muted truncate mt-1">${m.descripcion || "Sin descripción detallada"}</p>
+                        <p class="text-xs text-gray-400 mt-2">Fecha: ${fechaFormat}</p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 ml-4 min-w-[100px]">
+                        <button class="px-3 py-1 text-xs bg-yellow-700 hover:bg-yellow-600 rounded transition-colors" 
+                                onclick="editarMantenimiento('${encodeURIComponent(JSON.stringify(m))}')">
+                            ✏️ Editar
+                        </button>
+                        <button class="px-3 py-1 text-xs bg-red-700 hover:bg-red-600 rounded transition-colors" 
+                                onclick="eliminarMantenimiento('${m.id}')">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                `;
+                cont.appendChild(div);
+            });
+        }
+
+        /* =====================
+            CRUD (Lógica centralizada)
+        ======================*/
+        
+        window.guardarMantenimiento = async function () {
+            const instalacionId = s("instalacion").value;
+            if (!instalacionId) return alert("Seleccione una instalación antes de registrar.");
+
+            const editId = s("mantEditId").value;
+            const titulo = s("mantTitulo").value.trim();
+            const descripcion = s("mantDesc").value.trim();
+            const fecha = s("mantFecha").value;
+            const estado = s("mantEstado").value;
+            
+            // ⚠️ VALIDACIÓN DE FECHA: No anterior a hoy
+            const minDate = s("mantFecha").getAttribute('min');
+            if (fecha < minDate) {
+                 return alert("⚠️ La fecha de mantenimiento no puede ser anterior al día de hoy.");
+            }
+            // -----------------------------------------------------------
+
+            if (!titulo || !fecha || !estado) return alert("Título, Fecha y Estado son obligatorios.");
+
+            let error = null;
+
+            if (editId) {
+                // Modo Edición
+                const res = await supabase
+                    .from("mantenimientos_instalacion") // 👈 ¡CORRECCIÓN DE NOMBRE DE TABLA!
+                    .update({ titulo, descripcion, fecha, estado })
+                    .eq("id", editId).select().single();
+                error = res.error;
+            } else {
+                // Modo Agregar
+                const res = await supabase
+                    .from("mantenimientos_instalacion") // 👈 ¡CORRECCIÓN DE NOMBRE DE TABLA!
+                    .insert({ instalacion_id: instalacionId, titulo, descripcion, fecha, estado });
+                error = res.error;
+            }
+            
+            if (error) {
+                console.error("Error al guardar:", error);
+                alert("Error al guardar: " + error.message);
+                return;
+            }
+
+            // Limpiar formulario y recargar lista
+            s("mantEditId").value = "";
+            s("mantTitulo").value = "";
+            s("mantDesc").value = "";
+            s("mantFecha").value = "";
+            s("mantEstado").value = "";
+            cargarMantenimientos();
+            alert(`Registro ${editId ? 'actualizado' : 'guardado'} exitosamente.`);
+        };
+        
+
+        window.editarMantenimiento = function (raw) {
+            const m = JSON.parse(decodeURIComponent(raw));
+            const minDate = setFechaMinimaHoy(); // Obtiene la fecha mínima para el modal
+            
+            // Creamos un formulario en el modal para edición
+            const modalBody = s("modal-body-content");
+            modalBody.innerHTML = `
+                <input type="hidden" id="modal-mant-editId" value="${m.id}">
+                
+                <label class="block mb-2"><span class="muted text-sm">Título del trabajo</span>
+                    <input id="modal-mant-titulo" class="form-control mt-1" value="${m.titulo}" />
+                </label>
+
+                <label class="block mb-2"><span class="muted text-sm">Descripción del trabajo</span>
+                    <textarea id="modal-mant-desc" class="form-control mt-1 h-20">${m.descripcion || ""}</textarea>
+                </label>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="block"><span class="muted text-sm">Fecha</span>
+                        <input id="modal-mant-fecha" type="date" class="form-control mt-1" 
+                               value="${m.fecha}" min="${minDate}" />
+                    </label>
+                    
+                    <label class="block"><span class="muted text-sm">Estado</span>
+                        <select id="modal-mant-estado" class="form-control mt-1">
+                            <option value="pendiente">🟠 Pendiente</option>
+                            <option value="en proceso">🟡 En Proceso</option>
+                            <option value="completado">🟢 Completado</option>
+                        </select>
+                    </label>
+                </div>
+            `;
+            
+            // Seleccionar la opción de estado correcta
+            s("modal-mant-estado").value = m.estado;
+            
+            s("modalGuardarBtn").textContent = "Actualizar Registro";
+            s("modal-mant").style.display = "flex";
+        };
+        
+        window.guardarMantenimientoFromModal = function() {
+            // Transfiere los datos del modal al formulario principal antes de guardar
+            s("mantTitulo").value = s("modal-mant-titulo").value;
+            s("mantDesc").value = s("modal-mant-desc").value;
+            s("mantFecha").value = s("modal-mant-fecha").value;
+            s("mantEstado").value = s("modal-mant-estado").value;
+            s("mantEditId").value = s("modal-mant-editId").value; 
+            
+            // Llamamos a la función principal de guardar, la cual contiene la validación de fecha.
+            cerrarModalMantenimiento();
+            guardarMantenimiento();
+        }
+
+
+        window.eliminarMantenimiento = async function (id) {
+            if (!confirm("⚠️ ¿Está seguro de eliminar este registro de mantenimiento? Esta acción es irreversible.")) return;
+            const { error } = await supabase.from("mantenimientos_instalacion").delete().eq("id", id); // 👈 ¡CORRECCIÓN DE NOMBRE DE TABLA!
+            
+            if (error) {
+                console.error("Error al eliminar:", error);
+                alert("Error al eliminar el registro: " + error.message);
+            } else {
+                cargarMantenimientos();
+                alert("Registro eliminado.");
+            }
+        };
+
+        window.cerrarModalMantenimiento = function () {
+            s("modal-mant").style.display = "none";
+        };
+        
+        /* =====================
+            EVENTOS PRINCIPALES
+        ======================*/
+
+        // Botón Atrás (Menú de Gestión)
+        s("btnAtras").addEventListener("click", () => {
+            window.location.href = "menu-gestion.html"; 
+        });
+
+        // Cambio de Instalación
+        s("instalacion").addEventListener("change", actualizarInfoInstalacion);
+
+        // Inicialización
+        window.addEventListener("DOMContentLoaded", () => {
+            cargarInstalaciones();
+            setFechaMinimaHoy(); // Establece la fecha mínima en el formulario principal
+        });
+    </script>
+</body>
+</html>

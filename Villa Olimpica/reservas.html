@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservas - Villa Olímpica de Barahona</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Anton&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        // --- CONFIGURACIÓN DE SUPABASE ---
+        const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Mapeo de IDs de instalación a nombres legibles (Global para reusar)
+        const instalacionNames = {
+            'palacio_deportes': 'Palacio de los Deportes',
+            'pabellon_gimnasia': 'Pabellón de Gimnasia',
+            'piscina_olimpica': 'Piscina Olímpica',
+            'campo_pista': 'Campo y Pista',
+            'canchas_aire_libre': 'Canchas Exteriores'
+        };
+
+        const statusLabels = {
+            'pendiente': '🟡 Pendiente de Aprobación',
+            'confirmada': '✅ Confirmada',
+            'cancelada': '❌ Cancelada',
+        };
+
+        // --- LÓGICA DE AUTENTICACIÓN Y CARGA DE DATOS ---
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                // Si no hay usuario, redirigir al login
+                localStorage.setItem('redirectAfterLogin', window.location.href);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            await loadUserData(user.email);
+
+            // Inicializar la vista en el panel de Reservar
+            showPanel('reservar');
+
+            // Cargar las reservas del usuario automáticamente al iniciar
+            await loadUserReservations(user.id);
+        });
+
+        async function loadUserData(email) {
+            const { data: perfil, error } = await supabase
+                .from("usuarios")
+                .select("nombre")
+                .eq("email", email)
+                .single();
+
+            if (perfil) {
+                // Solo muestra el primer nombre
+                document.getElementById('userNameDisplay').textContent = perfil.nombre.split(' ')[0];
+            } else {
+                console.error("Error al cargar perfil:", error);
+                document.getElementById('userNameDisplay').textContent = "Usuario";
+            }
+        }
+
+        // --- FUNCIÓN DE CARGA DE RESERVAS ---
+        async function loadUserReservations(userId, status = 'all', sort = 'reciente') {
+            const reservationsContainer = document.getElementById('reservationsList');
+            reservationsContainer.innerHTML = `<div class="text-center py-8 text-gray-400">Cargando historial...</div>`;
+
+            let query = supabase
+                .from('reservas')
+                // Seleccionamos las columnas relevantes para la lista (la vista de detalles usa select('*'))
+                .select('id, instalacion_id, fecha_inicio, hora_inicio, hora_fin, estado, created_at')
+                .eq('user_id', userId); 
+
+            // Aplicar filtro de estado
+            if (status !== 'all') {
+                query = query.eq('estado', status);
+            }
+
+            // Aplicar orden
+            if (sort === 'reciente') {
+                query = query.order('created_at', { ascending: false });
+            } else if (sort === 'antigua') {
+                query = query.order('created_at', { ascending: true });
+            } else if (sort === 'fecha_reserva') {
+                query = query.order('fecha_inicio', { ascending: true });
+            }
+
+            const { data: reservas, error } = await query;
+
+            reservationsContainer.innerHTML = '';
+
+            if (error) {
+                reservationsContainer.innerHTML = `<div class="text-center py-8 text-red-400">Error al cargar reservas: ${error.message}. Asegúrate de que RLS esté configurado correctamente para SELECT.</div>`;
+                return;
+            }
+
+            if (reservas.length === 0) {
+                reservationsContainer.innerHTML = `<div class="text-center py-8 text-gray-500">Aún no has realizado ninguna reserva.</div>`;
+                return;
+            }
+
+            // Mapeo de estado a estilo Tailwind
+            const statusStyles = {
+                'pendiente': 'bg-yellow-500/20 text-yellow-300 border-yellow-500',
+                'confirmada': 'bg-green-500/20 text-green-300 border-green-500',
+                'cancelada': 'bg-red-500/20 text-red-300 border-red-500',
+            };
+            
+            reservas.forEach(reserva => {
+                const estadoClase = statusStyles[reserva.estado] || 'bg-gray-500/20 text-gray-300 border-gray-500';
+                const estadoLabel = statusLabels[reserva.estado] || 'Desconocido';
+                const instalacionNombre = instalacionNames[reserva.instalacion_id] || 'Instalación Desconocida';
+
+                const fecha = new Date(reserva.fecha_inicio + 'T00:00:00').toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+                const horaInicio = reserva.hora_inicio.substring(0, 5); // HH:MM
+                const horaFin = reserva.hora_fin.substring(0, 5); // HH:MM
+
+                const card = `
+                    <div class="bg-gray-800/80 p-5 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-l-4 border-white/20 hover:border-blue-500 transition-all">
+                        <div class="mb-3 sm:mb-0">
+                            <p class="text-lg font-semibold text-white mb-1">${instalacionNombre}</p>
+                            <p class="text-sm text-gray-400">
+                                Fecha: <span class="text-white font-medium">${fecha}</span>
+                                de ${horaInicio} a ${horaFin}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">Solicitud realizada el: ${new Date(reserva.created_at).toLocaleDateString('es-DO')}</p>
+                        </div>
+                        <div class="text-left sm:text-right">
+                            <span class="inline-block px-3 py-1 text-xs font-bold rounded-full border ${estadoClase} mb-2">
+                                ${estadoLabel}
+                            </span>
+                            <button onclick="viewDetails('${reserva.id}')" class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors block sm:inline-block">
+                                Ver Detalles / Editar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                reservationsContainer.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // --- MANEJO DE PESTAÑAS (TABS) ---
+        window.showPanel = (panelId) => {
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            document.getElementById(panelId + 'Panel').classList.remove('hidden');
+
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-gray-700');
+            });
+            document.getElementById('tab' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.add('bg-blue-600', 'text-white');
+            document.getElementById('tab' + panelId.charAt(0).toUpperCase() + panelId.slice(1)).classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-gray-700');
+        }
+
+        // --- FUNCIONES DE ACCIÓN ---
+
+        window.reservar = (inst) => {
+            window.location.href = "reservar-area.html?instalacion=" + encodeURIComponent(inst);
+        }
+
+        window.applyFilter = async () => {
+            const status = document.getElementById('filterStatus').value;
+            const sort = document.getElementById('filterSort').value;
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await loadUserReservations(user.id, status, sort);
+            }
+        }
+
+        window.signOutUser = async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error');
+            } else {
+                window.location.href = 'inicio.html';
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // 🚀 FUNCIÓN viewDetails ACTUALIZADA PARA MOSTRAR TODOS LOS DATOS Y RECARGAR LA LISTA AL CERRAR
+        // ----------------------------------------------------------------
+        window.viewDetails = async (id) => {
+            Swal.fire({
+                title: 'Cargando Detalles...',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                background: '#1e293b',
+                color: '#fff'
+            });
+
+            const { data: reserva, error } = await supabase
+                .from('reservas')
+                .select('*') // Selecciona todas las columnas
+                .eq('id', id)
+                .single();
+
+            if (error || !reserva) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo cargar la información de la reserva.',
+                    icon: 'error',
+                    confirmButtonColor: '#38bdf8',
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            // Formatear datos para la visualización
+            const estadoLabel = statusLabels[reserva.estado] || 'Desconocido';
+            const instalacionNombre = instalacionNames[reserva.instalacion_id] || 'Instalación Desconocida';
+            
+            // Si la reserva ya fue confirmada o cancelada, no permitir la edición
+            const isEditable = reserva.estado === 'pendiente'; 
+            const editButtonHtml = isEditable ? 
+                `<button id="editBtn" onclick="editReservation('${reserva.id}')" class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition-colors w-full">
+                    ✏️ Editar Solicitud
+                </button>` :
+                `<div class="text-center text-sm text-gray-500 italic p-2 border border-gray-700 rounded-md">
+                    Solo las reservas Pendientes pueden ser editadas.
+                </div>`;
+            
+            const detailsHtml = `
+                <div class="text-left space-y-3 p-2 text-gray-200">
+                    <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-2 mb-3">${instalacionNombre}</h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div><strong>👤 Nombre:</strong> ${reserva.nombre_completo}</div>
+                        <div><strong>📞 Teléfono:</strong> ${reserva.telefono}</div>
+                        <div><strong>📧 Correo:</strong> ${reserva.correo}</div>
+                        <div><strong>🏢 Institución:</strong> ${reserva.institucion || 'N/A'}</div>
+                    </div>
+                    
+                    <hr class="border-gray-700 mt-3 mb-3">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div><strong>🗓️ Fecha de Inicio:</strong> ${reserva.fecha_inicio}</div>
+                        <div><strong>🗓️ Fecha de Fin:</strong> ${reserva.fecha_fin}</div>
+                        <div><strong>🕒 Hora de Inicio:</strong> ${reserva.hora_inicio.substring(0, 5)}</div>
+                        <div><strong>🕓 Hora de Fin:</strong> ${reserva.hora_fin.substring(0, 5)}</div>
+                    </div>
+
+                    <p class="pt-3"><strong>📝 Descripción/Motivo:</strong></p>
+                    <div class="bg-gray-700/50 p-3 rounded-lg text-sm italic">${reserva.descripcion || 'Sin descripción.'}</div>
+
+                    <hr class="border-gray-700 mt-3 mb-3">
+
+                    <p class="text-sm"><strong>Estado Actual:</strong> <span class="font-bold">${estadoLabel}</span></p>
+                    <p class="text-xs text-gray-500">Solicitada el: ${new Date(reserva.created_at).toLocaleDateString('es-DO')}</p>
+                    <p class="text-xs text-gray-500">ID: ${reserva.id}</p>
+                </div>
+                
+                <div class="mt-4">
+                    ${editButtonHtml}
+                </div>
+            `;
+
+            Swal.fire({
+                title: `Detalles de Reserva`,
+                html: detailsHtml,
+                showConfirmButton: false, // Ocultamos el botón por defecto para usar nuestro botón de Edición/Cerrar
+                showCloseButton: true,
+                customClass: { popup: 'w-[90%] md:w-[600px]' },
+                background: '#1e293b',
+                color: '#fff'
+            })
+            // ESTA PARTE RECARGA LA LISTA AL CERRAR EL MODAL
+            .then(async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    // Recargamos la lista con los filtros actuales
+                    await loadUserReservations(
+                        user.id, 
+                        document.getElementById('filterStatus').value, 
+                        document.getElementById('filterSort').value
+                    );
+                }
+            });
+        }
+        
+        // ----------------------------------------------------------------
+        // ✏️ FUNCIÓN PARA EDITAR LA RESERVA
+        // ----------------------------------------------------------------
+        window.editReservation = async (id) => {
+            // Cargar datos de la reserva (ya están cargados en viewDetails, pero para ser re-utilizable, los cargamos de nuevo)
+            const { data: reserva, error } = await supabase
+                .from('reservas')
+                .select('*')
+                .eq('id', id)
+                .single();
+            
+            if (error || !reserva) {
+                Swal.fire('Error', 'No se pudo cargar la reserva para edición.', 'error');
+                return;
+            }
+
+            // Solo permitiremos editar campos que el usuario DEBE poder cambiar si la reserva está pendiente
+            const editHtml = `
+                <div class="text-left p-2 space-y-3">
+                    <input type="hidden" id="edit-reserva-id" value="${reserva.id}">
+                    <p class="text-sm text-gray-400">Sólo puede editar los datos de contacto y la descripción del evento. La instalación y fechas deben ser solicitadas de nuevo.</p>
+
+                    <label class="block text-sm font-medium text-gray-200" for="edit-nombre">Nombre Completo <span class="text-red-400">*</span></label>
+                    <input id="edit-nombre" type="text" value="${reserva.nombre_completo}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-blue-500">
+
+                    <label class="block text-sm font-medium text-gray-200" for="edit-telefono">Teléfono <span class="text-red-400">*</span></label>
+                    <input id="edit-telefono" type="text" value="${reserva.telefono}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-blue-500">
+
+                    <label class="block text-sm font-medium text-gray-200" for="edit-institucion">Institución (Opcional)</label>
+                    <input id="edit-institucion" type="text" value="${reserva.institucion || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-blue-500">
+                    
+                    <label class="block text-sm font-medium text-gray-200" for="edit-descripcion">Descripción del Evento</label>
+                    <textarea id="edit-descripcion" rows="4" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-blue-500">${reserva.descripcion || ''}</textarea>
+                </div>
+            `;
+            
+            const { value: formValues } = await Swal.fire({
+                title: `Editar Reserva: ${instalacionNames[reserva.instalacion_id]}`,
+                html: editHtml,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Cambios',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#10b981',
+                background: '#1e293b',
+                color: '#fff',
+                preConfirm: () => {
+                    const nombre = document.getElementById('edit-nombre').value.trim();
+                    const telefono = document.getElementById('edit-telefono').value.trim();
+                    const institucion = document.getElementById('edit-institucion').value.trim();
+                    const descripcion = document.getElementById('edit-descripcion').value.trim();
+                    
+                    if (!nombre || !telefono) {
+                        Swal.showValidationMessage('Los campos Nombre y Teléfono son obligatorios.');
+                        return false;
+                    }
+                    return { nombre, telefono, institucion, descripcion };
+                }
+            });
+
+            if (formValues) {
+                // Ejecutar la actualización en Supabase
+                const { error: updateError } = await supabase
+                    .from('reservas')
+                    .update({
+                        nombre_completo: formValues.nombre,
+                        telefono: formValues.telefono,
+                        institucion: formValues.institucion || null,
+                        descripcion: formValues.descripcion || null,
+                    })
+                    .eq('id', id);
+                    
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (updateError) {
+                    Swal.fire('Error de Actualización', `Hubo un problema al guardar los cambios: ${updateError.message}`, 'error');
+                } else {
+                    Swal.fire({
+                        title: '¡Actualizado!',
+                        text: 'La reserva ha sido modificada con éxito.',
+                        icon: 'success',
+                        confirmButtonColor: '#38bdf8',
+                        background: '#1e293b',
+                        color: '#fff'
+                    }).then(() => {
+                         // Recargar la lista de reservas para reflejar los cambios
+                         if (user) loadUserReservations(user.id, document.getElementById('filterStatus').value, document.getElementById('filterSort').value);
+                    });
+                }
+            }
+        }
+
+
+    </script>
+
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #0f172a;
+        }
+
+        .header-bg {
+            background-color: #1e293b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #334155;
+        }
+
+        .glass-card-booking {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
+
+        .glass-card-booking:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border-color: #38bdf8;
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        .font-anton {
+            font-family: "Anton", sans-serif;
+        }
+    </style>
+</head>
+
+<body class="text-white min-h-screen">
+
+    <header class="header-bg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="text-2xl font-bold text-blue-400 font-anton uppercase tracking-wider">
+                    VO BARAHONA
+                </div>
+                <nav class="hidden sm:flex space-x-2">
+                    <button id="tabReservar" onclick="showPanel('reservar')" class="tab-button px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        Reservar Instalación
+                    </button>
+                    <button id="tabHistorial" onclick="showPanel('historial')" class="tab-button px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        Mis Reservas
+                    </button>
+                </nav>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span class="text-sm text-gray-300 hidden md:block">
+                    Bienvenido, <span id="userNameDisplay" class="font-semibold text-white">Cargando...</span>
+                </span>
+                <button onclick="signOutUser()"
+                    class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-1.5 px-3 rounded-md transition-colors flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
+
+        <div id="reservarPanel" class="tab-panel">
+            <h2 class="text-3xl font-bold text-white mb-6">📅 Selecciona un Área para Reservar</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div onclick="reservar('palacio_deportes')" class="glass-card-booking">
+                    <div class="icon-box bg-blue-500/30 text-blue-400">🏀</div>
+                    <h3 class="text-xl font-bold">Palacio de los Deportes</h3>
+                    <p class="text-gray-400 text-sm mt-1">Pabellón principal (Baloncesto, Voleibol).</p>
+                    <button class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-md font-semibold transition-all shadow-lg shadow-blue-900/40">
+                        RESERVAR
+                    </button>
+                </div>
+
+                <div onclick="reservar('pabellon_gimnasia')" class="glass-card-booking">
+                    <div class="icon-box bg-red-500/30 text-red-400">🤸</div>
+                    <h3 class="text-xl font-bold">Pabellón de Gimnasia</h3>
+                    <p class="text-gray-400 text-sm mt-1">Taekwondo, Pesas y Artes Marciales.</p>
+                    <button class="mt-4 w-full py-2 bg-red-600 hover:bg-red-700 rounded-md font-semibold transition-all shadow-lg shadow-red-900/40">
+                        RESERVAR
+                    </button>
+                </div>
+
+                <div class="glass-card-booking opacity-70 cursor-not-allowed">
+                    <div class="icon-box bg-cyan-500/30 text-cyan-400">🏊</div>
+                    <h3 class="text-xl font-bold text-gray-500">Piscina Olímpica</h3>
+                    <p class="text-gray-500 text-sm mt-1">Instalación acuática (actualmente inactiva).</p>
+                    <button disabled class="mt-4 w-full py-2 bg-gray-600 rounded-md font-semibold text-gray-400">
+                        INACTIVO
+                    </button>
+                </div>
+
+                <div onclick="reservar('campo_pista')" class="glass-card-booking">
+                    <div class="icon-box bg-green-500/30 text-green-400">🏃</div>
+                    <h3 class="text-xl font-bold">Campo y Pista</h3>
+                    <p class="text-gray-400 text-sm mt-1">Atletismo, Caminatas y Fútbol.</p>
+                    <button class="mt-4 w-full py-2 bg-green-600 hover:bg-green-700 rounded-md font-semibold transition-all shadow-lg shadow-green-900/40">
+                        RESERVAR
+                    </button>
+                </div>
+
+                <div onclick="reservar('canchas_aire_libre')" class="glass-card-booking">
+                    <div class="icon-box bg-yellow-500/30 text-yellow-400">🎾</div>
+                    <h3 class="text-xl font-bold">Canchas Exteriores</h3>
+                    <p class="text-gray-400 text-sm mt-1">Tenis, Voleibol de Playa y Usos Múltiples.</p>
+                    <button class="mt-4 w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-md font-semibold transition-all shadow-lg shadow-yellow-900/40">
+                        RESERVAR
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="historialPanel" class="tab-panel hidden">
+            <h2 class="text-3xl font-bold text-white mb-6">📑 Historial y Gestión de Reservas</h2>
+
+            <div class="section-card mb-6">
+                <div class="flex flex-col sm:flex-row gap-4 justify-between items-center">
+
+                    <div class="flex items-center gap-2">
+                        <label for="filterStatus" class="text-sm font-medium text-gray-400">Estado:</label>
+                        <select id="filterStatus" onchange="applyFilter()" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg py-2 px-3 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">Todas</option>
+                            <option value="confirmada">Confirmadas (Aprobadas)</option> <option value="pendiente">Pendientes (Revisión)</option>
+                            <option value="cancelada">Canceladas (Rechazadas)</option> </select>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label for="filterSort" class="text-sm font-medium text-gray-400">Ordenar por:</label>
+                        <select id="filterSort" onchange="applyFilter()" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg py-2 px-3 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="reciente">Más Reciente (Creación)</option>
+                            <option value="antigua">Más Antigua (Creación)</option>
+                            <option value="fecha_reserva">Fecha de Evento</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="reservationsList" class="space-y-4">
+                <div class="text-center py-8 text-gray-400">Cargando tu historial...</div>
+            </div>
+
+        </div>
+
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donaciones — Villa Olímpica</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul Institucional/Deportivo */
+            --secondary: #10b981; /* Verde Acento Moderno */
+            --bg-dark: #0f172a; /* Azul Oscuro Profundo */
+            --card-bg: #1a233b; /* Fondo de tarjeta sutil */
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, var(--bg-dark), #0f172a); 
+            color: white;
+            font-family: "Inter", sans-serif;
+            min-height: 100vh;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .muted {
+            color: #94a3b8;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #1c458a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="min-h-screen">
+        
+        <header class="p-4 flex justify-between items-center border-b border-white/10" style="background: #1e293b;">
+            <div class="flex items-center gap-3">
+                <div style="width:40px;height:40px;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;">
+                    VO
+                </div>
+                <div class="font-extrabold text-xl">Gestión de Donaciones</div>
+            </div>
+            
+            <button id="btnAtras" class="py-2 px-4 rounded-lg text-white font-semibold text-sm transition-colors"
+                style="background:var(--secondary);">
+                ← Atrás (Menú Gestión)
+            </button>
+        </header>
+
+        <main class="p-8 max-w-6xl mx-auto">
+            <h1 class="text-3xl font-extrabold mb-8" style="color:var(--secondary);">Registro y Control de Donaciones</h1>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4" style="color:var(--primary);">Registrar Nueva Donación</h2>
+                        
+                        <h3 class="font-semibold text-white/70 mb-3 border-b border-white/10 pb-2">Información del Donante</h3>
+                        
+                        <label class="block mb-2"><span class="muted text-sm">Nombre del Donante (Persona/Empresa)</span>
+                            <input id="donanteNombre" class="form-control mt-1" required />
+                        </label>
+
+                        <label class="block mb-2"><span class="muted text-sm">Tipo de Donante</span>
+                            <select id="donanteTipo" class="form-control mt-1">
+                                <option value="Persona">Persona Individual</option>
+                                <option value="Empresa">Empresa</option>
+                                <option value="Institucion">Institución</option>
+                            </select>
+                        </label>
+                        
+                        <label class="block mb-2"><span class="muted text-sm">Contacto (Email / Teléfono)</span>
+                            <input id="contactoInfo" class="form-control mt-1" type="text" />
+                        </label>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <label class="block"><span class="muted text-sm">Fecha</span>
+                                <input id="donacionFecha" type="date" class="form-control mt-1" required />
+                            </label>
+                            <label class="block"><span class="muted text-sm">Valor Estimado ($)</span>
+                                <input id="valorEstimado" type="number" class="form-control mt-1" placeholder="Opcional" />
+                            </label>
+                        </div>
+                        
+                        <h3 class="font-semibold text-white/70 mb-3 border-b border-white/10 pb-2 mt-4">Artículos Donados (Inventario)</h3>
+                        
+                        <label class="block mb-2"><span class="muted text-sm">Artículo de Inventario Afectado</span>
+                            <select id="inventarioItem" class="form-control mt-1">
+                                <option value="">Cargando inventario...</option>
+                                </select>
+                        </label>
+
+                        <label class="block mb-2"><span class="muted text-sm">Cantidad Recibida (Unidades)</span>
+                            <input id="cantidadDonada" type="number" min="1" step="1" class="form-control mt-1" required />
+                        </label>
+                        
+                        <label class="block mb-4"><span class="muted text-sm">Notas de la Donación</span>
+                            <textarea id="notasDonacion" class="form-control mt-1 h-16"></textarea>
+                        </label>
+                        
+                        <button onclick="guardarDonacion()" class="btn-primary w-full text-base">
+                            Registrar Donación e Incrementar Inventario
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-2">
+                    <h2 class="text-xl font-bold mb-4" style="color:var(--primary);">Historial de Donaciones</h2>
+                    <div id="donacionLista" class="space-y-4">
+                        <p class='muted card'>Cargando historial...</p>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        // NOTA: Utilizando las claves de Supabase proporcionadas originalmente
+        const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const s = id => document.getElementById(id);
+        
+        /* =====================
+            CARGA DE DATOS
+        ======================*/
+
+        // Función para cargar los artículos del inventario_instalacion
+        async function cargarInventario() {
+            // 💡 CARGA DESDE LA TABLA CORRECTA
+            const { data, error } = await supabase.from("inventario_instalacion").select("id, nombre, instalacion_id, instalaciones(nombre)");
+            const sel = s("inventarioItem");
+            sel.innerHTML = '<option value="">-- Seleccione un artículo --</option>';
+
+            if (error) {
+                console.error("Error cargando inventario_instalacion:", error);
+                sel.innerHTML = '<option value="">Error al cargar inventario</option>';
+                return [];
+            }
+            
+            data.forEach(i => {
+                const instalacionNombre = i.instalaciones ? i.instalaciones.nombre : 'N/A';
+                const opt = document.createElement("option");
+                opt.value = i.id;
+                // Muestra el nombre del artículo y a qué instalación pertenece
+                opt.textContent = `${i.nombre} (Instalación: ${instalacionNombre})`;
+                sel.appendChild(opt);
+            });
+            return data;
+        }
+
+        // Función para cargar y mostrar el historial de donaciones
+        async function cargarDonaciones() {
+            const cont = s("donacionLista");
+            cont.innerHTML = "<p class='muted card'>Cargando historial...</p>";
+
+            // Seleccionamos la donación y unimos con los detalles y el inventario_instalacion
+            const { data, error } = await supabase
+                .from("donaciones")
+                .select(`
+                    *,
+                    items:donacion_items (
+                        cantidad,
+                        inventario_instalacion (nombre, instalaciones(nombre))
+                    )
+                `)
+                .order("fecha", { ascending: false });
+                
+            if (error) { 
+                console.error("Error cargando donaciones:", error); 
+                cont.innerHTML = "<p class='muted card text-red-400'>Error al cargar el historial.</p>";
+                return;
+            }
+
+            if (data.length === 0) {
+                cont.innerHTML = "<p class='muted card'>No hay donaciones registradas.</p>";
+                return;
+            }
+
+            cont.innerHTML = data.map(d => {
+                const fechaFormat = new Date(d.fecha).toLocaleDateString('es-ES');
+                const itemsList = d.items.map(item => {
+                    const inv = item.inventario_instalacion;
+                    const itemName = inv ? inv.nombre : 'Artículo Desconocido';
+                    const instalacionName = (inv && inv.instalaciones) ? inv.instalaciones.nombre : 'N/A';
+                    return `<li class="ml-4 list-disc text-sm">${item.cantidad} x ${itemName} (en ${instalacionName})</li>`;
+                }).join('');
+
+                return `
+                    <div class="card border-l-4 border-green-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="font-bold text-lg text-white">${d.donante_nombre} <span class="text-sm text-gray-400">(${d.donante_tipo})</span></p>
+                            <p class="text-xs text-gray-400">${fechaFormat}</p>
+                        </div>
+                        <p class="muted text-sm mb-2">Contacto: ${d.contacto_info || 'N/A'}</p>
+                        <p class="text-sm italic text-yellow-400 mb-2">Valor Estimado: $${d.valor_estimado ? d.valor_estimado.toFixed(2) : '0.00'}</p>
+                        <p class="muted text-sm mt-3 border-t border-white/10 pt-2">
+                            Artículos recibidos:
+                            <ul class="text-white">${itemsList}</ul>
+                        </p>
+                        <p class="text-xs muted mt-3">Notas: ${d.notas || 'Sin notas.'}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* =====================
+            CRUD Y LÓGICA DE INVENTARIO
+        ======================*/
+        
+        window.guardarDonacion = async function () {
+            // 1. Obtener datos del formulario
+            const donanteNombre = s("donanteNombre").value.trim();
+            const donanteTipo = s("donanteTipo").value;
+            const contactoInfo = s("contactoInfo").value.trim();
+            const valorEstimado = parseFloat(s("valorEstimado").value) || null;
+            const donacionFecha = s("donacionFecha").value;
+            const notas = s("notasDonacion").value.trim();
+            
+            const inventarioInstalacionId = s("inventarioItem").value;
+            const cantidadDonada = parseInt(s("cantidadDonada").value); // 💡 Usamos parseInt para INTEGER
+
+            // 2. Validaciones
+            if (!donanteNombre || !donacionFecha || !inventarioInstalacionId || isNaN(cantidadDonada) || cantidadDonada <= 0) {
+                return alert("⚠️ Nombre del donante, Fecha, Artículo y Cantidad (entero positivo) son campos obligatorios.");
+            }
+
+            // Paso A: Insertar la Donación Principal
+            const { data: donacionData, error: donacionError } = await supabase
+                .from("donaciones")
+                .insert({ 
+                    donante_nombre: donanteNombre, 
+                    donante_tipo: donanteTipo, 
+                    contacto_info: contactoInfo, 
+                    valor_estimado: valorEstimado, 
+                    fecha: donacionFecha, 
+                    notas: notas 
+                })
+                .select()
+                .single();
+
+            if (donacionError) {
+                console.error("Error al registrar donación:", donacionError);
+                return alert("Error al registrar donación: " + donacionError.message);
+            }
+
+            const donacionId = donacionData.id;
+
+            // Paso B: Insertar el Detalle del Item Donado
+            const { error: itemError } = await supabase
+                .from("donacion_items")
+                .insert({
+                    donacion_id: donacionId,
+                    // 💡 USAMOS EL NUEVO CAMPO DE RELACIÓN
+                    inventario_instalacion_id: inventarioInstalacionId, 
+                    cantidad: cantidadDonada
+                });
+            
+            if (itemError) {
+                console.error("Error al registrar detalle del ítem:", itemError);
+                return alert("Error al registrar detalle del ítem. Donación principal guardada.");
+            }
+
+            // Paso C: Actualizar el Inventario (Incrementar la cantidad)
+            
+            // 1. Obtener la cantidad actual del inventario_instalacion
+            const { data: inventarioData, error: invFetchError } = await supabase
+                .from("inventario_instalacion") // 💡 TABLA CORREGIDA
+                .select("cantidad")
+                .eq("id", inventarioInstalacionId)
+                .single();
+
+            if (invFetchError) {
+                 console.error("Error al obtener inventario_instalacion:", invFetchError);
+                 return alert("Éxito al registrar donación, pero falló la actualización del inventario: " + invFetchError.message);
+            }
+
+            const nuevaCantidad = inventarioData.cantidad + cantidadDonada;
+
+            // 2. Actualizar la cantidad
+            const { error: invUpdateError } = await supabase
+                .from("inventario_instalacion") // 💡 TABLA CORREGIDA
+                .update({ cantidad: nuevaCantidad })
+                .eq("id", inventarioInstalacionId);
+
+            if (invUpdateError) {
+                console.error("Error al actualizar inventario_instalacion:", invUpdateError);
+                return alert("Éxito al registrar donación, pero falló la actualización del inventario: " + invUpdateError.message);
+            }
+
+
+            // 4. Finalización exitosa
+            // Limpiar formulario y recargar lista
+            s("donanteNombre").value = "";
+            s("contactoInfo").value = "";
+            s("valorEstimado").value = "";
+            s("notasDonacion").value = "";
+            s("inventarioItem").value = "";
+            s("cantidadDonada").value = "";
+            
+            cargarDonaciones();
+            alert(`🎉 Donación registrada exitosamente! El inventario ha sido incrementado en ${cantidadDonada} unidades.`);
+        };
+
+
+        /* =====================
+            EVENTOS PRINCIPALES
+        ======================*/
+
+        // Botón Atrás (Menú de Gestión)
+        s("btnAtras").addEventListener("click", () => {
+            window.location.href = "menu-gestion.html"; 
+        });
+
+        // Inicialización
+        window.addEventListener("DOMContentLoaded", () => {
+            // Establecer la fecha de hoy por defecto
+            const today = new Date().toISOString().split('T')[0];
+            s("donacionFecha").value = today;
+            
+            cargarInventario(); // Carga los items de inventario_instalacion
+            cargarDonaciones(); // Muestra el historial
+        });
+    </script>
+</body>
+</html>

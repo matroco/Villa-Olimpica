@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes de Gestión - Villa Olímpica</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .header-institucional {
+            background-color: #0d47a1;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        .btn-export {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.2s;
+        }
+        .btn-export:hover {
+            background-color: #1e7e34;
+            border-color: #1c7430;
+        }
+        #report-preview {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+        /* Para el estado de carga */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header-institucional shadow-sm">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-bar-chart-fill me-2"></i>Gestión de Reportes
+        </h1>
+        <div class="text-end">
+            <p class="mb-0 fw-bold">Villa Olímpica Nacional</p>
+            <small id="current-datetime"></small>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card p-3 shadow-sm mb-4">
+                <h5 class="card-title text-primary"><i class="bi bi-sliders me-2"></i>Filtros y Opciones</h5>
+                <hr>
+
+                <label for="report-area" class="form-label fw-bold">1. Seleccione el Área</label>
+                <select id="report-area" class="form-select mb-3">
+                    <option value="" selected disabled>-- Seleccione un Área --</option>
+                    <option value="Mantenimiento">Mantenimiento e Infraestructura</option>
+                    <option value="Inventario">Inventario General y Movimientos</option>
+                    <option value="Instalaciones">Instalaciones (Ficha Técnica y Estado)</option>
+                    <option value="Actividades">Actividades y Eventos</option>
+                    <option value="Personal">Personal y RR.HH.</option>
+                    <option value="Donaciones">Donaciones (Financiero/Recursos)</option>
+                </select>
+
+                <label for="date-start" class="form-label fw-bold">2. Rango de Fechas</label>
+                <div class="row g-2 mb-3">
+                    <div class="col">
+                        <input type="date" id="date-start" class="form-control" value="2025-01-01">
+                        <small class="text-muted">Fecha de Inicio</small>
+                    </div>
+                    <div class="col">
+                        <input type="date" id="date-end" class="form-control" value="2025-12-31">
+                        <small class="text-muted">Fecha de Fin</small>
+                    </div>
+                </div>
+
+                <button id="generate-preview" class="btn btn-primary w-100 mb-3">
+                    <i class="bi bi-cloud-download me-2"></i>Obtener Datos Reales
+                </button>
+
+                <hr>
+
+                <button id="export-pdf-btn" class="btn btn-export btn-lg w-100 text-white shadow">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar a PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <h4 class="mb-3 text-secondary"><i class="bi bi-file-earmark-text me-2"></i>Vista Previa del Reporte</h4>
+            <div id="report-preview" class="shadow-sm">
+                <p class="text-center text-muted pt-5">
+                    Seleccione un **Área** y un **Rango de Fechas** y haga clic en **Obtener Datos Reales**.
+                </p>
+                <div id="dynamic-report-content" class="table-responsive">
+                    </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    // --- Configuración Institucional ---
+    const VILLA_NAME = "Villa Olímpica Nacional";
+    const VILLA_LOCATION = "Ciudad Deportiva, [Dirección o País]";
+    let reportDataToExport = null; 
+
+    // ** IMPORTANTE: CONFIGURAR LA URL DE TU API REAL **
+    // Esta debe ser la dirección de tu servidor que se conecta a PostgreSQL
+    const API_ENDPOINT = 'http://localhost:3000/api/reportes'; // Cambiar a la URL de producción (ej: https://tudominio.com/api/reportes)
+
+    // --- Funciones de Utilidad y Renderizado ---
+
+    function updateDateTime() {
+        // ... (función de hora se mantiene) ...
+        const now = new Date();
+        const options = {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: true
+        };
+        document.getElementById('current-datetime').textContent = now.toLocaleDateString('es-ES', options);
+    }
+    setInterval(updateDateTime, 1000); 
+    updateDateTime(); 
+
+    function renderPreview(data) {
+        const contentDiv = document.getElementById('dynamic-report-content');
+        if (!data || !data.head || !data.body || data.body.length === 0) {
+            contentDiv.innerHTML = `<p class="alert alert-warning text-center">No hay datos registrados en la base de datos para este reporte/rango.</p>`;
+            return;
+        }
+
+        let tableHTML = `<h5 class="text-center mb-3">${data.title}</h5>`;
+        tableHTML += `<table class="table table-striped table-hover">`;
+        
+        // Encabezado
+        tableHTML += `<thead><tr>`;
+        data.head[0].forEach(h => {
+            tableHTML += `<th scope="col">${h}</th>`;
+        });
+        tableHTML += `</tr></thead>`;
+
+        // Cuerpo
+        tableHTML += `<tbody>`;
+        data.body.forEach(row => {
+            tableHTML += `<tr>`;
+            row.forEach(cell => {
+                // Asegurar que los datos numéricos grandes se formateen si es necesario
+                const cellContent = typeof cell === 'number' ? cell.toLocaleString('es-ES') : cell;
+                tableHTML += `<td>${cellContent}</td>`;
+            });
+            tableHTML += `</tr>`;
+        });
+        tableHTML += `</tbody></table>`;
+        
+        contentDiv.innerHTML = tableHTML;
+    }
+
+    // --- Lógica de Petición de Datos (Fetch API) ---
+
+    document.getElementById('generate-preview').addEventListener('click', async () => {
+        const area = document.getElementById('report-area').value;
+        const start = document.getElementById('date-start').value;
+        const end = document.getElementById('date-end').value;
+        const contentDiv = document.getElementById('dynamic-report-content');
+
+        if (!area) {
+            alert('Por favor, seleccione un área de reporte.');
+            return;
+        }
+        
+        contentDiv.innerHTML = `<p class="text-center text-info pt-5"><i class="bi bi-arrow-clockwise spin me-2"></i>Solicitando datos a la base de datos...</p>`;
+        
+        // 1. Construir la URL con parámetros (query string)
+        const url = `${API_ENDPOINT}?area=${area}&fecha_inicio=${start}&fecha_fin=${end}`;
+
+        try {
+            // 2. Ejecutar la llamada asíncrona al servidor (backend)
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                // Si el servidor responde con un error 4xx o 5xx
+                throw new Error(`Error ${response.status}: El servidor no pudo procesar la solicitud.`);
+            }
+
+            // 3. Obtener los datos reales en formato JSON
+            const data = await response.json();
+            
+            // 4. Guardar y Renderizar
+            if (data && data.head && data.body) {
+                reportDataToExport = data; 
+                renderPreview(data); 
+            } else {
+                 contentDiv.innerHTML = `<p class="alert alert-warning text-center">Respuesta del servidor no válida o incompleta. Asegúrese de que el backend formatee el JSON correctamente.</p>`;
+            }
+
+        } catch (error) {
+            console.error("Error al obtener datos:", error);
+            contentDiv.innerHTML = `<p class="alert alert-danger text-center"><i class="bi bi-x-octagon-fill me-2"></i>Error de conexión: ${error.message}. Verifique la URL de la API y el estado del servidor.</p>`;
+        }
+    });
+
+
+    // --- Lógica de Exportación a PDF (Se mantiene igual, usa reportDataToExport) ---
+
+    document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        const area = document.getElementById('report-area').value;
+        const dataToExport = reportDataToExport;
+        
+        if (!area || !dataToExport) {
+            alert('Primero debe obtener los datos reales (Obtener Datos Reales) antes de exportar.');
+            return;
+        }
+
+        // 1. Inicializar jsPDF y obtener la marca de tiempo institucional
+        const { jsPDF } = window.jspdf; 
+        const doc = new jsPDF();
+        const now = new Date();
+        const dateCreated = now.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // --- 2. Encabezado Institucional del PDF ---
+        let y = 20;
+        doc.setFontSize(18);
+        doc.setTextColor(13, 71, 161);
+        doc.text(VILLA_NAME, 14, y); 
+        y += 5;
+
+        doc.setFontSize(10);
+        doc.setTextColor(51, 51, 51);
+        doc.text(`Ubicación: ${VILLA_LOCATION}`, 14, y);
+        y += 5;
+        
+        doc.setFontSize(10);
+        doc.text(`Fecha y Hora de Creación: ${dateCreated}`, 14, y);
+        y += 5;
+        
+        doc.line(14, y, 196, y); 
+        y += 10;
+
+        // --- Título del Reporte ---
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(dataToExport.title, 105, y, { align: 'center' });
+        y += 10;
+
+
+        // --- 3. Cuerpo del PDF (autoTable) ---
+        doc.autoTable({
+            startY: y,
+            head: dataToExport.head,
+            body: dataToExport.body,
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [40, 167, 69], textColor: 255 },
+            alternateRowStyles: { fillColor: [240, 240, 240] },
+            margin: { top: 10 }
+        });
+
+
+        // 4. Guardar
+        const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const filename = `Reporte_${area}_${datePart}.pdf`;
+        doc.save(filename);
+
+        alert(`¡Reporte de ${area} exportado a ${filename} exitosamente!`);
+    });
+
+</script>
+
+</body>
+</html>

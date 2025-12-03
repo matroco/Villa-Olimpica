@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Personal - Sistema</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos generales */
+        :root {
+            --primary: #1e293b; /* slate-800 */
+            --secondary: #10b981; /* emerald-500 */
+            --text-color: #f8fafc; /* slate-50 */
+        }
+        
+        body {
+            background-color: var(--primary);
+            color: var(--text-color);
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Estilos de elementos específicos */
+        .card {
+            background-color: #1f2937; /* slate-800 ligeramente más oscuro */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-style {
+            background-color: #334155; /* slate-700 */
+            border: 1px solid #475569; /* slate-600 */
+            color: var(--text-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            width: 100%;
+        }
+        .input-style:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 1px var(--secondary);
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #059669; /* emerald-600 */
+        }
+
+        /* Estilos de la tabla */
+        .table-striped tbody tr:nth-child(odd) {
+            background-color: #1f2937; 
+        }
+        .table-striped tbody tr:hover {
+            background-color: #334155; 
+        }
+        
+        th {
+            background-color: #1e293b; /* slate-800 */
+            color: #94a3b8; /* slate-400 */
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid #334155;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #334155;
+            vertical-align: middle;
+        }
+
+        /* Utilidades */
+        .small-muted {
+            color: #94a3b8; /* slate-400 */
+        }
+        
+        .pill {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .hidden-el {
+            display: none !important;
+        }
+
+        /* Filtros */
+        .filter-btn {
+            border: 2px solid #334155;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .filter-btn:hover {
+            background-color: #334155;
+        }
+        .active-filter {
+            border-color: var(--secondary) !important;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Estilos para el modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #1f2937;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-3xl font-bold">🛠️ Gestión de Personal</h1>
+            <div class="space-x-3">
+        <a href="menu-gestion.html" class="px-3 py-1.5 rounded-full border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors">
+            ← Atras
+        </a>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-1 card p-6 h-fit sticky top-8">
+                <h2 id="formTitle" class="text-xl font-semibold mb-4 border-b border-white/10 pb-2">
+                    Registrar Nuevo Personal
+                </h2>
+                
+                <form id="formEdit" class="space-y-4">
+                    <input type="hidden" id="p_id">
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="p_nombre" class="block text-sm font-medium mb-1 small-muted">Nombre</label>
+                            <input type="text" id="p_nombre" class="input-style" required>
+                        </div>
+                        <div>
+                            <label for="p_apellido" class="block text-sm font-medium mb-1 small-muted">Apellido</label>
+                            <input type="text" id="p_apellido" class="input-style" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="p_cedula" class="block text-sm font-medium mb-1 small-muted">Cédula</label>
+                            <input type="text" id="p_cedula" class="input-style" required>
+                        </div>
+                        <div>
+                            <label for="p_nacionalidad" class="block text-sm font-medium mb-1 small-muted">Nacionalidad</label>
+                            <input type="text" id="p_nacionalidad" class="input-style">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="p_telefono" class="block text-sm font-medium mb-1 small-muted">Teléfono</label>
+                            <input type="text" id="p_telefono" class="input-style">
+                        </div>
+                        <div>
+                            <label for="p_sexo" class="block text-sm font-medium mb-1 small-muted">Sexo</label>
+                            <select id="p_sexo" class="input-style">
+                                <option value="">Seleccionar</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="p_cargo" class="block text-sm font-medium mb-1 small-muted">Cargo</label>
+                            <input type="text" id="p_cargo" class="input-style">
+                        </div>
+                        <div>
+                            <label for="p_nivel_academico" class="block text-sm font-medium mb-1 small-muted">Nivel Académico</label>
+                            <input type="text" id="p_nivel_academico" class="input-style">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="p_activo" class="block text-sm font-medium mb-1 small-muted">Estado</label>
+                        <select id="p_activo" class="input-style">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="p_direccion" class="block text-sm font-medium mb-1 small-muted">Dirección</label>
+                        <textarea id="p_direccion" rows="2" class="input-style"></textarea>
+                    </div>
+
+                    <div class="flex space-x-2 pt-2">
+                        <button type="button" class="btn-primary flex-1" onclick="guardarPersonal()">
+                            Guardar Personal
+                        </button>
+                        <button type="button" id="btnCancelarEdicion" class="px-4 py-2 bg-red-600/70 hover:bg-red-600 rounded-lg text-sm font-semibold hidden-el" onclick="abrirNuevo()">
+                            Cancelar Edición
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4">👥 Listado General</h2>
+                    
+                    <div class="mb-4 flex space-x-3 text-sm">
+                        <div id="filterAll" class="filter-btn text-white" style="border-color: #10b981;">Todos</div>
+                        <div id="filterActive" class="filter-btn text-white">Activos</div>
+                        <div id="filterInactive" class="filter-btn text-white">Inactivos</div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="w-1/4">Nombre Completo</th>
+                                    <th class="w-1/6">Cédula</th>
+                                    <th class="w-1/6">Cargo</th>
+                                    <th class="w-1/6">Teléfono</th>
+                                    <th class="w-1/12">Estado</th>
+                                    <th class="w-auto text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="personalBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalVer" class="modal-backdrop hidden-el" onclick="cerrarModalVer()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-start mb-4 border-b border-white/10 pb-2">
+                <h3 class="text-lg font-bold">Detalles del Personal</h3>
+                <button class="text-2xl hover:text-red-400" onclick="cerrarModalVer()">
+                    &times;
+                </button>
+            </div>
+            
+            <div id="modalVerBody">
+                </div>
+            
+            <div class="mt-6 text-right">
+                <button class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded-lg text-sm font-semibold" onclick="cerrarModalVer()">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        // === CONFIG SUPABASE ===
+        const supabase = createClient(
+            "https://wzovzfrrgknhvcozektc.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo",
+            {
+                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+            }
+        );
+
+        // Referencias DOM
+        const personalBody = document.getElementById("personalBody");
+        const filterBtns = document.querySelectorAll(".filter-btn");
+
+        // Elementos del formulario
+        const formTitle = document.getElementById("formTitle");
+        const formEdit = document.getElementById("formEdit");
+        const btnCancelarEdicion = document.getElementById("btnCancelarEdicion");
+
+        // Modales y formularios
+        const modalVer = document.getElementById("modalVer");
+        const modalVerBody = document.getElementById("modalVerBody");
+
+        // Estado UI y DATOS GLOBALES
+        let filtro = "all"; // all | active | inactive
+        let personalData = []; // NUEVO: Para guardar los datos cargados y buscar los detalles
+
+        /* -----------------------
+           FUNCIÓN AUXILIAR
+        ----------------------- */
+
+        // Escape básico para insertar texto en HTML (evita inyección)
+        function escapeHtml(str) {
+            if (!str && str !== 0) return "";
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+        
+        // Manejador de botones de filtro
+        function actualizarFiltrosUI(nuevoFiltro) {
+            filterBtns.forEach(btn => {
+                btn.classList.remove("active-filter");
+                btn.style.borderColor = '#334155'; // Reset color
+            });
+            const selectedBtn = document.getElementById(`filter${nuevoFiltro.charAt(0).toUpperCase() + nuevoFiltro.slice(1)}`);
+            if (selectedBtn) {
+                 selectedBtn.style.borderColor = '#10b981'; // Color de acento
+                 selectedBtn.classList.add("active-filter");
+            }
+        }
+
+
+        /* -----------------------
+           LÓGICA DE DATOS Y CRUD
+        ----------------------- */
+
+        // Cargar personal con filtro
+        async function cargarPersonal() {
+            personalBody.innerHTML = `<tr><td colspan="6" class="py-6 small-muted text-center">Cargando personal...</td></tr>`;
+            
+            let query = supabase.from("personal").select("*").order("apellido", { ascending: true });
+
+            if (filtro === "active") {
+                query = query.eq("activo", true);
+            } else if (filtro === "inactive") {
+                query = query.eq("activo", false);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error(error);
+                personalBody.innerHTML = `<tr><td colspan="6" class="py-6 text-red-400 text-center">Error al cargar los datos.</td></tr>`;
+                return;
+            }
+            
+            // Guardar los datos en la variable global
+            personalData = data || [];
+            actualizarFiltrosUI(filtro);
+
+
+            if (!personalData.length) {
+                personalBody.innerHTML = `<tr><td colspan="6" class="py-6 small-muted text-center">No hay registros con el filtro actual.</td></tr>`;
+                return;
+            }
+
+            personalBody.innerHTML = personalData.map(p => {
+                const telefono = p.telefono ? p.telefono : "—";
+                
+                const activoPill = p.activo 
+                    ? `<span class="pill" style="background: rgba(16, 185, 129, 0.15);color:var(--secondary);">Activo</span>` 
+                    : `<span class="pill" style="background: rgba(239, 68, 68, 0.1);color:#f87171;">Inactivo</span>`;
+                
+                // Importante: Ahora solo pasamos el ID a la función verMas
+                return `
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="font-semibold">${escapeHtml(p.nombre || '')} ${escapeHtml(p.apellido || '')}</div>
+                            <div class="small-muted text-xs">${escapeHtml(p.nivel_academico || 'N/A')}</div>
+                        </td>
+                        <td class="py-3 px-4 small-muted">${escapeHtml(p.cedula || '—')}</td>
+                        <td class="py-3 px-4">${escapeHtml(p.cargo || '—')}</td>
+                        <td class="py-3 px-4 small-muted">${escapeHtml(telefono)}</td>
+                        <td class="py-3 px-4 small-muted">${activoPill}</td>
+                        <td class="py-3 px-4 text-right whitespace-nowrap">
+                            <button class="px-3 py-1 rounded-full bg-slate-600/50 hover:bg-slate-500 text-xs font-medium mr-2" 
+                                onclick='abrirEditarID(${p.id})'>Editar</button>
+                            <button class="px-3 py-1 rounded-full bg-indigo-600/50 hover:bg-indigo-500 text-xs font-medium mr-2" 
+                                onclick='verMas(${p.id})'>Detalles</button>
+                            <button class="px-3 py-1 rounded-full bg-red-600/50 hover:bg-red-500 text-xs font-medium" 
+                                onclick="eliminarPersonal(${p.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        // === Funciones de Formulario/Modal (Globales) ===
+
+        // Limpiar y preparar para nuevo registro
+        window.abrirNuevo = function() {
+            formTitle.textContent = "Registrar Nuevo Personal";
+            formEdit.reset();
+            document.getElementById("p_id").value = "";
+            document.getElementById("p_activo").value = "true";
+            btnCancelarEdicion.classList.add("hidden-el");
+        }
+
+        // Cargar datos para edición por ID
+        window.abrirEditarID = (id) => {
+            const p = personalData.find(item => item.id === id);
+            if (!p) return;
+
+            formTitle.textContent = "Editando a: " + (p.nombre || '—');
+            document.getElementById("p_id").value = p.id ?? "";
+            document.getElementById("p_nombre").value = p.nombre ?? "";
+            document.getElementById("p_apellido").value = p.apellido ?? "";
+            document.getElementById("p_cedula").value = p.cedula ?? "";
+            document.getElementById("p_nacionalidad").value = p.nacionalidad ?? "";
+            document.getElementById("p_telefono").value = p.telefono ?? "";
+            document.getElementById("p_sexo").value = p.sexo ?? "";
+            document.getElementById("p_direccion").value = p.direccion ?? "";
+            document.getElementById("p_nivel_academico").value = p.nivel_academico ?? "";
+            document.getElementById("p_cargo").value = p.cargo ?? "";
+            document.getElementById("p_activo").value = p.activo ? "true" : "false";
+            btnCancelarEdicion.classList.remove("hidden-el");
+        };
+
+        // Guardar (crear o actualizar)
+        window.guardarPersonal = async function() {
+            const id = document.getElementById("p_id").value;
+            const obj = {
+                nombre: document.getElementById("p_nombre").value.trim() || null,
+                apellido: document.getElementById("p_apellido").value.trim() || null,
+                cedula: document.getElementById("p_cedula").value.trim() || null,
+                nacionalidad: document.getElementById("p_nacionalidad").value.trim() || null,
+                telefono: document.getElementById("p_telefono").value.trim() || null,
+                sexo: document.getElementById("p_sexo").value || null,
+                direccion: document.getElementById("p_direccion").value.trim() || null,
+                nivel_academico: document.getElementById("p_nivel_academico").value.trim() || null,
+                cargo: document.getElementById("p_cargo").value.trim() || null,
+                activo: document.getElementById("p_activo").value === "true"
+            };
+
+            if (!obj.nombre || !obj.apellido || !obj.cedula) {
+                alert("⚠️ Nombre, apellido y cédula son obligatorios.");
+                return;
+            }
+
+            try {
+                if (!id) {
+                    // Nuevo registro
+                    const { error } = await supabase.from("personal").insert([obj]);
+                    if (error) throw error;
+                    alert("🎉 Personal registrado exitosamente!");
+                } else {
+                    // Actualización
+                    const { error } = await supabase.from("personal").update(obj).eq("id", id);
+                    if (error) throw error;
+                    alert("✅ Personal actualizado exitosamente!");
+                }
+                
+                abrirNuevo(); // Limpiar el formulario
+                await cargarPersonal();
+            } catch (err) {
+                console.error(err);
+                alert("❌ Error al guardar. Revisa la consola y asegúrate de no duplicar la cédula si está definida como única.");
+            }
+        }
+
+        // Ver más (solo lectura) - ACEPTA ID AHORA
+        window.verMas = (id) => {
+            // BUSCAR el objeto en los datos cargados
+            const p = personalData.find(item => item.id === id);
+            if (!p) {
+                alert("No se encontró el registro de personal.");
+                return;
+            }
+
+            modalVerBody.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Nombre</div><div class="font-semibold">${escapeHtml(p.nombre || '')} ${escapeHtml(p.apellido || '')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Cédula</div><div>${escapeHtml(p.cedula || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Cargo</div><div>${escapeHtml(p.cargo || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Teléfono</div><div>${escapeHtml(p.telefono || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2 col-span-2"><div class="small-muted font-medium">Dirección</div><div>${escapeHtml(p.direccion || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Nivel académico</div><div>${escapeHtml(p.nivel_academico || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Nacionalidad</div><div>${escapeHtml(p.nacionalidad || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Sexo</div><div>${escapeHtml(p.sexo || '—')}</div></div>
+                    <div class="border-b border-white/10 pb-2"><div class="small-muted font-medium">Activo</div><div>${p.activo ? 'Sí' : 'No'}</div></div>
+                    <div class="col-span-2 text-xs pt-4 small-muted">
+                        <strong>ID:</strong> ${p.id ?? '—'} | <strong>Registrado:</strong> ${p.fecha_registro ? new Date(p.fecha_registro).toLocaleDateString() : "—"}
+                    </div>
+                </div>
+            `;
+            modalVer.classList.remove("hidden-el");
+        };
+
+        // Cerrar modal ver
+        window.cerrarModalVer = function() {
+            modalVer.classList.add("hidden-el");
+        }
+
+        // Eliminar con confirmación
+        window.eliminarPersonal = async (id) => {
+            const ok = confirm("⚠️ ¿Eliminar este registro? Esta acción no se puede deshacer.");
+            if (!ok) return;
+            try {
+                const { error } = await supabase.from("personal").delete().eq("id", id);
+                if (error) throw error;
+                await cargarPersonal();
+                alert("🗑️ Registro eliminado.");
+            } catch (err) {
+                console.error(err);
+                alert("❌ No se pudo eliminar. Revisa la consola.");
+            }
+        };
+
+
+        /* -----------------------
+           EVENTOS DE INICIALIZACIÓN
+        ----------------------- */
+
+        // Eventos para los filtros
+        document.getElementById("filterAll").addEventListener("click", () => {
+            filtro = "all";
+            cargarPersonal();
+        });
+        document.getElementById("filterActive").addEventListener("click", () => {
+            filtro = "active";
+            cargarPersonal();
+        });
+        document.getElementById("filterInactive").addEventListener("click", () => {
+            filtro = "inactive";
+            cargarPersonal();
+        });
+        
+        // Botón Volver a Gestión
+        document.getElementById("btnAtras").addEventListener("click", () => {
+             // Redirecciona si tienes una página principal de gestión
+             // window.location.href = "menu-gestion.html";
+             alert("Redirección a Gestión (Implementa la URL correcta)");
+        });
+
+
+        // Inicialización
+        (async () => {
+            await cargarPersonal();
+            // Iniciar el formulario en modo "Nuevo"
+            abrirNuevo(); 
+        })();
+    </script>
+</body>
+</html>

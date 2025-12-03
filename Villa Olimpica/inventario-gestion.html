@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventario — Villa Olímpica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul más institucional */
+            --accent: #10b981; /* Verde esmeralda moderno */
+            --bg-dark: #0f172a; /* Azul oscuro profundo */
+            --card-bg: #1a233b; /* Fondo de tarjeta sutil */
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* --- Estilos del panel de contenido --- */
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .muted {
+            color: #94a3b8;
+        }
+
+        /* Campos de formulario */
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        /* Botones principales */
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #1c458a;
+        }
+        
+        .btn-secondary {
+            background: #475569;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: #334155;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1f2937; /* Fondo de modal oscuro */
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="min-h-screen"> 
+
+        <header class="p-4 flex justify-between items-center border-b border-white/10" style="background: #1e293b;">
+            <div class="flex items-center gap-3">
+                <div style="width:40px;height:40px;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;">
+                    VO
+                </div>
+                <div class="font-extrabold text-xl">Gestión de Inventario</div>
+            </div>
+            
+            <button id="btnAtras" class="py-2 px-4 rounded-lg text-white font-semibold text-sm"
+                style="background:var(--primary);">
+                ← Atrás
+            </button>
+            
+        </header>
+
+        <main class="p-8 max-w-7xl mx-auto">
+            <h1 class="text-3xl font-extrabold mb-8" style="color:var(--accent);">Inventario de Instalaciones</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="md:col-span-1 space-y-6">
+                    
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4">Selección y Detalles</h2>
+                        <label class="block">
+                            <span class="muted text-sm font-medium block mb-2">Seleccionar Instalación</span>
+                            <select id="instalacion" class="form-control text-base"></select>
+                        </label>
+                        
+                        <div id="infoInstalacion" class="mt-4 pt-4 border-t border-white/10 hidden">
+                            <p class="font-bold text-lg" id="instNombre"></p>
+                            <p class="muted text-sm" id="instDescripcion"></p>
+                            <p class="muted text-sm mt-1">Estado: <span id="instEstado" class="font-semibold"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4" style="color:var(--accent);">Añadir / Editar Elemento</h2>
+
+                        <input type="hidden" id="invEditId" value="">
+
+                        <div class="space-y-3">
+                            <input id="invNombre" class="form-control" placeholder="Nombre del elemento (Ej: Balón de Baloncesto)" />
+                            <input id="invCantidad" type="number" min="1" class="form-control" placeholder="Cantidad Total" />
+                            <select id="invEstado" class="form-control">
+                                <option value="">-- Seleccionar estado --</option>
+                                <option value="funcional">🟢 Funcional</option>
+                                <option value="dañado">🔴 Dañado</option>
+                                <option value="mantenimiento">🟡 En mantenimiento</option>
+                            </select>
+                            <input id="invCondicion" class="form-control" placeholder="Condición (Ej: Nuevo, Regular, Muy Usado)" />
+                            <textarea id="invObs" class="form-control h-20" placeholder="Observaciones detalladas"></textarea>
+                        </div>
+
+                        <div class="flex gap-3 mt-4">
+                            <button id="btnGuardarInv" onclick="agregarInventario()" class="btn-primary flex-1">Guardar</button>
+                            <button id="btnCancelarEdicion" onclick="cancelarEdicion()" class="btn-secondary hidden">Limpiar Formulario</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <h2 class="text-xl font-bold mb-4" style="color:var(--accent);">Elementos Registrados</h2>
+                    <div id="inventarioLista" class="space-y-3">
+                        <p class='muted p-4 card'>Seleccione una instalación para ver su inventario.</p>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <div id="modalVerItem" class="modal-overlay" style="display:none;">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                <h3 class="text-2xl font-bold" id="verItemTitulo">Detalle del Elemento</h3>
+                <button onclick="cerrarModalVerItem()" class="text-3xl text-gray-400 hover:text-white transition-colors leading-none">&times;</button>
+            </div>
+            <div class="modal-body text-base space-y-4" id="verItemBody"></div>
+            <div class="mt-6 text-right">
+                <button class="btn-secondary" onclick="cerrarModalVerItem()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        function safeEl(id) { return document.getElementById(id); }
+        
+        // Mapeo para los emojis de estado
+        const estadoEmojis = {
+            "funcional": "🟢",
+            "dañado": "🔴",
+            "mantenimiento": "🟡"
+        };
+        const estadoTexto = {
+            "funcional": "Funcional",
+            "dañado": "Dañado",
+            "mantenimiento": "En mantenimiento"
+        };
+        const movimientoTipoColor = {
+            "ENTRADA": "text-green-400",
+            "SALIDA": "text-red-400"
+        };
+
+        /* =====================
+            CARGAR INSTALACIONES (Sin cambios)
+        ======================*/
+        window.cargarInstalaciones = async function () {
+            const { data, error } = await supabase.from("instalaciones").select("*").order("nombre");
+            if (error) { console.error("Error cargando instalaciones:", error); return; }
+            
+            const sel = safeEl("instalacion");
+            sel.innerHTML = '<option value="">-- Seleccione --</option>';
+
+            data.forEach(i => {
+                const opt = document.createElement("option");
+                opt.value = i.id;
+                opt.textContent = i.nombre;
+                sel.appendChild(opt);
+            });
+        };
+
+        window.actualizarInfoInstalacion = async function () {
+            const sel = safeEl("instalacion");
+            const id = sel.value;
+            const info = safeEl("infoInstalacion");
+
+            if (!id) {
+                safeEl("inventarioLista").innerHTML = "<p class='muted p-4 card'>Seleccione una instalación para ver su inventario.</p>";
+                return info.classList.add("hidden");
+            }
+
+            const { data, error } = await supabase
+                .from("instalaciones")
+                .select("*")
+                .eq("id", id)
+                .single();
+            
+            if (error) { console.error("Error cargando info de instalación:", error); return; }
+
+            safeEl("instNombre").textContent = sel.options[sel.selectedIndex].textContent;
+            safeEl("instDescripcion").textContent = data.descripcion || "Sin descripción";
+            safeEl("instEstado").textContent = data.estado;
+            info.classList.remove("hidden");
+        };
+
+        /* =====================
+            INVENTARIO CRUD (Sin cambios)
+        ======================*/
+
+        window.cargarInventario = async function () {
+            const id = safeEl("instalacion").value;
+            const cont = safeEl("inventarioLista");
+            cont.innerHTML = "";
+
+            if (!id) {
+                cont.innerHTML = "<p class='muted p-4 card'>Seleccione una instalación para ver su inventario.</p>";
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from("inventario_instalacion")
+                .select("*")
+                .eq("instalacion_id", id)
+                .order("created_at", { ascending: false });
+                
+            if (error) { console.error("Error cargando inventario:", error); return; }
+
+            if (!data.length) {
+                cont.innerHTML = "<p class='muted p-4 card'>No hay elementos registrados en esta instalación.</p>";
+                return;
+            }
+
+            data.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "card flex justify-between items-center";
+                
+                const emoji = estadoEmojis[item.estado] || "⚪";
+                const estadoTxt = estadoTexto[item.estado] || item.estado;
+                const cantidadColor = item.cantidad < 5 ? "text-red-400" : (item.cantidad < 15 ? "text-yellow-400" : "text-green-400");
+                
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-lg">${item.nombre}</p>
+                        <p class="text-sm ${cantidadColor} font-bold mt-1">Stock: ${item.cantidad}</p>
+                        <p class="text-sm text-gray-300 mt-1">${emoji} ${estadoTxt}</p>
+                        <p class="text-xs muted mt-1 italic">${item.condicion || "Condición no especificada"}</p>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-green-700 hover:bg-green-600 text-xs rounded transition-colors" onclick="entradaInventario('${item.id}')">➕ Entrada</button>
+                            <button class="px-3 py-1 bg-red-700 hover:bg-red-600 text-xs rounded transition-colors" onclick="salidaInventario('${item.id}')">➖ Salida</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-blue-700 hover:bg-blue-600 text-xs rounded transition-colors" onclick="verMasInventario('${item.id}')">👁️ Ver más</button>
+                            <button class="px-3 py-1 bg-yellow-700 hover:bg-yellow-600 text-xs rounded transition-colors" onclick="editarInventario('${encodeURIComponent(JSON.stringify(item))}')">✏️ Editar</button>
+                            <button class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-xs rounded transition-colors" onclick="eliminarInventario('${item.id}')">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                `;
+
+                cont.appendChild(div);
+            });
+            
+            cancelarEdicion(); 
+        };
+        
+        window.refrescarInventario = window.cargarInventario; 
+
+        /* ===== AGREGAR / EDITAR, CANCELAR, ELIMINAR, ENTRADA, SALIDA, VER MÁS (Sin cambios) =====*/
+        window.agregarInventario = async function () {
+            const instalacionId = safeEl("instalacion").value;
+            const editId = safeEl("invEditId").value;
+
+            const nombre = safeEl("invNombre").value.trim();
+            const cantidad = parseInt(safeEl("invCantidad").value || "0");
+            const estado = safeEl("invEstado").value;
+            const condicion = safeEl("invCondicion").value;
+            const observaciones = safeEl("invObs").value;
+
+            if (!instalacionId) return alert("Por favor, seleccione una instalación.");
+            if (!nombre) return alert("El nombre del elemento es requerido.");
+            if (!cantidad || cantidad <= 0) return alert("La cantidad inicial debe ser un número positivo.");
+            if (!estado) return alert("Por favor, seleccione el estado del elemento.");
+
+            let error = null;
+
+            if (editId) {
+                // Modo Edición (UPDATE)
+                const res = await supabase.from("inventario_instalacion").update({
+                    nombre, cantidad, estado, condicion, observaciones
+                }).eq("id", editId).select().single();
+                error = res.error;
+            } else {
+                // Modo Agregar (INSERT)
+                const res = await supabase.from("inventario_instalacion").insert({
+                    instalacion_id: instalacionId,
+                    nombre, cantidad, estado, condicion, observaciones
+                });
+                error = res.error;
+            }
+            
+            if (error) {
+                alert("Error al guardar: " + error.message);
+                return;
+            }
+
+            cancelarEdicion(); // Limpia formulario, resetea botones
+            cargarInventario(); // Recarga la lista
+        };
+
+        window.cancelarEdicion = function () {
+            safeEl("invEditId").value = "";
+            safeEl("invNombre").value = "";
+            safeEl("invCantidad").value = "";
+            safeEl("invEstado").value = "";
+            safeEl("invCondicion").value = "";
+            safeEl("invObs").value = "";
+            safeEl("btnGuardarInv").textContent = "Guardar";
+            safeEl("btnCancelarEdicion").classList.add("hidden");
+        };
+
+        window.editarInventario = function (raw) {
+            const item = JSON.parse(decodeURIComponent(raw));
+            safeEl("invEditId").value = item.id;
+            safeEl("invNombre").value = item.nombre;
+            safeEl("invCantidad").value = item.cantidad;
+            safeEl("invEstado").value = item.estado;
+            safeEl("invCondicion").value = item.condicion;
+            safeEl("invObs").value = item.observaciones;
+
+            safeEl("btnGuardarInv").textContent = "Guardar cambios (Editando)";
+            safeEl("btnCancelarEdicion").classList.remove("hidden");
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+
+        window.eliminarInventario = async function (id) {
+            if (!confirm("⚠️ Advertencia: ¿Está seguro de eliminar COMPLETAMENTE este elemento de inventario y todos sus movimientos asociados?")) return;
+
+            const { error } = await supabase.from("inventario_instalacion").delete().eq("id", id);
+            
+            if (error) {
+                alert("Error al eliminar: " + error.message);
+                return;
+            }
+            
+            alert("Elemento eliminado exitosamente.");
+            cargarInventario();
+        };
+
+        window.entradaInventario = async function (id) {
+            const cantStr = prompt("Cantidad a ingresar (número entero positivo):");
+            const cant = parseInt(cantStr);
+            if (isNaN(cant) || cant <= 0) return alert("Entrada inválida.");
+            
+            const motivo = prompt("Motivo de la entrada (Ej: Nueva compra, Reparación):") || "Entrada manual";
+
+            const { error } = await supabase.rpc("inventario_add", {
+                item_id: id,
+                cant,
+                motivo: motivo
+            });
+
+            if (error) alert("Error al registrar entrada: " + error.message);
+            else alert(`${cant} unidades añadidas al inventario.`);
+
+            cargarInventario();
+        };
+
+        window.salidaInventario = async function (id) {
+            const cantStr = prompt("Cantidad a retirar (número entero positivo):");
+            const cant = parseInt(cantStr);
+            if (isNaN(cant) || cant <= 0) return alert("Entrada inválida.");
+            
+            const motivo = prompt("Motivo de la salida (Ej: Venta, Daño, Uso):") || "Salida manual";
+
+            const { error } = await supabase.rpc("inventario_remove", {
+                item_id: id,
+                cant,
+                motivo: motivo
+            });
+
+            if (error) {
+                alert("Error al registrar salida: " + error.message);
+                return;
+            }
+            
+            alert(`${cant} unidades retiradas del inventario.`);
+            cargarInventario();
+        };
+
+        window.verMasInventario = async function (id) {
+            const modal = safeEl("modalVerItem");
+            const body = safeEl("verItemBody");
+
+            const { data: item, error: itemError } = await supabase
+                .from("inventario_instalacion")
+                .select("*")
+                .eq("id", id)
+                .single();
+            
+            if (itemError) { console.error("Error cargando item:", itemError); return; }
+
+            const { data: movs, error: movsError } = await supabase
+                .from("inventario_movimientos")
+                .select("*")
+                .eq("inventario_id", id)
+                .order("created_at", { ascending: false })
+                .limit(20);
+                
+            if (movsError) { console.error("Error cargando movimientos:", movsError); return; }
+
+            safeEl("verItemTitulo").textContent = item.nombre;
+
+            let html = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div><strong class="muted">Cantidad Actual:</strong> <span class="text-xl font-bold">${item.cantidad}</span></div>
+                    <div><strong class="muted">Estado:</strong> ${estadoTexto[item.estado] || item.estado}</div>
+                    <div><strong class="muted">Condición:</strong> ${item.condicion || "N/A"}</div>
+                    <div><strong class="muted">Creado:</strong> ${new Date(item.created_at).toLocaleDateString()}</div>
+                </div>
+                <div class="mt-4"><strong class="muted">Observaciones:</strong> ${item.observaciones || "Ninguna"}</div>
+                
+                <hr class="my-5 border-white/10">
+                
+                <h4 class="font-bold text-lg mb-3">Historial de Movimientos (${movs.length} recientes)</h4>
+            `;
+
+            if (movs.length) {
+                movs.forEach(m => {
+                    const date = new Date(m.created_at).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+                    const color = movimientoTipoColor[m.tipo] || "text-white";
+                    
+                    html += `
+                        <div class="p-3 bg-white/5 rounded text-sm flex justify-between items-start">
+                            <div class="space-y-1">
+                                <span class="${color} font-bold">${m.tipo} (${m.cantidad})</span>
+                                <p class="muted text-xs">${m.motivo || "Sin motivo especificado"}</p>
+                            </div>
+                            <span class="text-gray-400 text-xs">${date}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `<p class="text-gray-400 text-sm">No hay movimientos registrados para este elemento.</p>`;
+            }
+
+            body.innerHTML = html;
+            modal.style.display = "flex";
+        };
+
+        window.cerrarModalVerItem = function () {
+            safeEl("modalVerItem").style.display = "none";
+        };
+
+        /* =====================
+            EVENTOS DE NAVEGACIÓN (MODIFICADO)
+        ======================*/
+        // El botón "Atrás" ahora tiene el ID 'btnAtras' y redirige a 'menu-gestion.html'
+        safeEl("btnAtras").addEventListener("click", () => {
+            // Redirige a la página principal de gestión
+            window.location.href = "menu-gestion.html"; 
+        });
+
+        safeEl("instalacion").addEventListener("change", () => {
+            actualizarInfoInstalacion();
+            cargarInventario();
+            cancelarEdicion();
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+            cargarInstalaciones();
+            safeEl("inventarioLista").innerHTML = "<p class='muted p-4 card'>Seleccione una instalación para ver su inventario.</p>";
+        });
+    </script>
+</body>
+</html>

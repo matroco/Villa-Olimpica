@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gestión de Actividades — Villa Olímpica</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --card-bg: rgba(30, 41, 59, 0.7); 
+            --primary: #3b82f6; 
+            --accent: #22d3ee; 
+            --text-light: #f8fafc; 
+            --text-muted: #94a3b8; 
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(34, 211, 238, 0.1) 0%, transparent 20%);
+            color: var(--text-light);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        .text-glow { text-shadow: 0 0 20px rgba(34, 211, 238, 0.3); }
+        .muted { color: var(--text-muted); font-size:.9rem; }
+        .small-muted { color: var(--text-muted); font-size: 0.8rem; }
+        .badge { 
+            padding: 4px 12px; 
+            border-radius: 999px; 
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Formulario y Modal Styling */
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: var(--text-light);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select { /* Clase añadida para el select */
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+        /* Ajuste para input de fecha, hora y select */
+        .form-input[type="date"],
+        .form-input[type="time"],
+        .form-select {
+            appearance: none; /* Estilo nativo removido para mejor consistencia */
+            padding-right: 12px;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.6);
+        }
+
+        .btn-primary-action {
+             background: linear-gradient(90deg, #3b82f6, #22d3ee);
+            color: white;
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn-primary-action:hover { opacity: 0.9; }
+
+        /* Estilos de tabla */
+        .table-header-dark { 
+            background-color: rgba(0, 0, 0, 0.15); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .table-row-dark:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+<div class="min-h-screen">
+    
+    <header class="bg-[#0f172a]/80 backdrop-blur-sm border-b border-white/5 sticky top-0 z-10">
+        <div class="main-container flex justify-between items-center py-4">
+            <div class="flex items-center gap-4">
+                <a href="menu-gestion.html" class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20">
+                    V
+                </a>
+                <div class="text-xl font-bold text-white tracking-tight hidden sm:block">
+                    Gestión de Actividades
+                </div>
+            </div>
+            
+            <nav class="flex items-center gap-3 text-sm font-medium">
+                <a class="px-3 py-1.5 rounded-full text-slate-400 hover:bg-white/5 transition-colors" href="menu-gestion.html">Atras</a>
+                <a class="px-3 py-1.5 rounded-full text-slate-400 hover:bg-white/5 transition-colors" href="reservas-gestion.html">Reservas</a>
+                <a class="px-3 py-1.5 rounded-full text-white bg-white/10 transition-colors" href="actividades-gestion.html">Actividades</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-extrabold text-white tracking-tight text-glow mb-1">
+                    🎉 Programación de Eventos
+                </h1>
+                <p class="small-muted" id="userInfo">Cargando usuario…</p>
+            </div>
+            <div class="flex items-center gap-3 mt-4 md:mt-0">
+                <button id="btnNew" class="btn-primary-action text-sm">
+                    + Nueva actividad
+                </button>
+                <button id="btnRefresh" class="px-4 py-2 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors text-sm font-semibold">
+                    Actualizar Lista
+                </button>
+            </div>
+        </div>
+
+        <section class="glass-panel p-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="font-bold text-xl text-white">Listado de Actividades Programadas</h2>
+                    <p class="muted text-sm">Administra el calendario de eventos y actividades de la Villa Olímpica.</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-slate-200">
+                    <thead class="table-header-dark text-xs uppercase">
+                        <tr>
+                            <th class="py-2 pr-4 text-left w-1/12">Fecha</th>
+                            <th class="py-2 pr-4 text-left w-1/12">Hora</th>
+                            <th class="py-2 pr-4 text-left w-3/12">Nombre</th>
+                            <th class="py-2 pr-4 text-left w-2/12">Lugar</th>
+                            <th class="py-2 pr-4 text-left w-3/12">Descripción</th>
+                            <th class="py-2 pr-4 text-center w-2/12">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="actividadesBody" class="divide-y divide-white/5">
+                        <tr class="table-row-dark">
+                            <td colspan="6" class="py-6 small-muted text-center">Cargando actividades...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+</div>
+
+<div id="modalActividad" class="fixed inset-0 hidden items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
+    <div class="bg-[#0f172a] rounded-xl p-6 w-11/12 max-w-lg border border-cyan-500/30 shadow-2xl shadow-cyan-500/10">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 id="modalTitulo" class="text-2xl font-bold text-white mb-1">Nueva actividad</h3>
+                <p class="small-muted" id="modalSubtitulo">
+                    Registra o actualiza una actividad en el calendario interno.
+                </p>
+            </div>
+            <button class="text-sm px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors" onclick="cerrarModalActividad()">Cerrar</button>
+        </div>
+
+        <div class="text-sm space-y-4 p-4 rounded-lg border border-white/10 bg-white/5">
+             <div class="mb-3">
+                <label class="form-label">Nombre de la actividad *</label>
+                <input id="actNombre" class="form-input" placeholder="Ej: Torneo intercolegial" required />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="form-label">Fecha *</label>
+                    <input id="actFecha" type="date" class="form-input" required />
+                </div>
+                <div>
+                    <label class="form-label">Hora</label>
+                    <input id="actHora" type="time" class="form-input" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Lugar</label>
+                <select id="actLugar" class="form-select">
+                    <option value="">(Seleccione una instalación)</option>
+                </select>
+                <p class="small-muted mt-1 text-red-300 hidden" id="loadingLugar">Cargando instalaciones...</p>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Descripción</label>
+                <textarea id="actDescripcion" class="form-textarea"
+                    placeholder="Detalles relevantes sobre la actividad."></textarea>
+            </div>
+        </div>
+
+        <div class="mt-6 flex gap-3 justify-end">
+            <button class="px-4 py-2 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors" onclick="cerrarModalActividad()">Cancelar</button>
+            <button id="btnGuardarActividad" class="btn-primary-action px-4 py-2 text-white rounded-lg font-semibold">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+    // Reemplaza tus datos de Supabase aquí
+    const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        }
+    });
+
+    // Función auxiliar para obtener la fecha de hoy en formato YYYY-MM-DD
+    function getTodayDateString() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // DOM
+    const btnLogout = document.getElementById("btnLogout");
+    const userInfo = document.getElementById("userInfo");
+    const actividadesBody = document.getElementById("actividadesBody");
+    const btnRefresh = document.getElementById("btnRefresh");
+    const btnNew = document.getElementById("btnNew");
+    const btnGuardarActividad = document.getElementById("btnGuardarActividad");
+
+    const modalActividad = document.getElementById("modalActividad");
+    const modalTitulo = document.getElementById("modalTitulo");
+    const actNombre = document.getElementById("actNombre");
+    const actFecha = document.getElementById("actFecha");
+    const actHora = document.getElementById("actHora");
+    const actLugar = document.getElementById("actLugar"); // Ahora es el <select>
+    const actDescripcion = document.getElementById("actDescripcion");
+    const loadingLugar = document.getElementById("loadingLugar");
+    
+    // Estado del modal
+    let modoActividad = "create"; // "create" o "edit"
+    let idActividadActual = null;
+
+
+    /* -------------------------------------
+       AUTENTICACIÓN Y ROLES
+    ------------------------------------- */
+    async function verificarAcceso() {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            window.location.href = "inicio.html";
+            return;
+        }
+
+        const { data: perfil } = await supabase
+            .from("usuarios")
+            .select("nombre,email,rol")
+            .eq("email", user.email)
+            .single();
+
+        if (!perfil) {
+            window.location.href = "inicio.html";
+            return;
+        }
+
+        if (userInfo) {
+            userInfo.innerHTML = `Administrador logueado: <span class="text-white font-semibold">${perfil.nombre}</span> • ${perfil.rol}`;
+        }
+    }
+
+    // Logout
+    if (btnLogout) {
+        btnLogout.addEventListener("click", async () => {
+            await supabase.auth.signOut();
+            window.location.href = "inicio.html";
+        });
+    }
+
+
+    /* -------------------------------------
+       CARGA DE DATOS EXTERNOS
+    ------------------------------------- */
+
+    // Función para llenar el desplegable de instalaciones
+    async function cargarOpcionesInstalaciones() {
+        loadingLugar.classList.remove('hidden');
+        actLugar.innerHTML = '<option value="">(Cargando...)</option>';
+
+        const { data, error } = await supabase
+            .from("instalaciones")
+            .select("nombre")
+            .order("nombre");
+
+        loadingLugar.classList.add('hidden');
+        actLugar.innerHTML = '<option value="">(Seleccione una instalación)</option>'; // Opción por defecto
+
+        if (error) {
+            console.error("Error cargando instalaciones:", error);
+            return;
+        }
+        
+        data.forEach(inst => {
+            const option = document.createElement("option");
+            option.value = inst.nombre;
+            option.textContent = inst.nombre;
+            actLugar.appendChild(option);
+        });
+    }
+
+    // Cargar actividades
+    async function cargarActividades() {
+        actividadesBody.innerHTML = `
+        <tr class="table-row-dark">
+          <td colspan="6" class="py-6 small-muted text-center">
+            Cargando actividades...
+          </td>
+        </tr>
+      `;
+
+        const { data, error } = await supabase
+            .from("actividades")
+            .select("id, nombre, fecha, hora, lugar, descripcion")
+            .order("fecha", { ascending: false })
+            .order("hora", { ascending: false });
+
+        if (error) {
+            console.error(error);
+            actividadesBody.innerHTML = `
+          <tr class="table-row-dark">
+            <td colspan="6" class="py-6 text-red-400 text-center">
+              Error al cargar las actividades.
+            </td>
+          </tr>
+        `;
+            return;
+        }
+
+        if (!data || !data.length) {
+            actividadesBody.innerHTML = `
+          <tr class="table-row-dark">
+            <td colspan="6" class="py-6 small-muted text-center">
+              No hay actividades registradas.
+            </td>
+          </tr>
+        `;
+            return;
+        }
+
+        actividadesBody.innerHTML = data.map(a => {
+            const horaTexto = a.hora ? a.hora.substring(0, 5) : "—";
+            return `
+            <tr class="table-row-dark">
+              <td class="py-3 pr-4 align-top text-white">${a.fecha}</td>
+              <td class="py-3 pr-4 align-top text-white">${horaTexto}</td>
+              <td class="py-3 pr-4 align-top text-white font-semibold">
+                ${a.nombre}
+              </td>
+              <td class="py-3 pr-4 align-top small-muted">
+                ${a.lugar ? a.lugar : "—"}
+              </td>
+              <td class="py-3 pr-4 align-top small-muted max-w-xs truncate">
+                ${a.descripcion ? a.descripcion : "—"}
+              </td>
+              <td class="py-3 pr-0 align-top text-center">
+                <div class="flex gap-2 justify-center">
+                    <button class="px-3 py-1 bg-blue-600/30 text-blue-300 rounded text-xs hover:bg-blue-600/50 transition-colors"
+                            onclick="window.editarActividad('${a.id}')">
+                        Editar
+                    </button>
+                    <button class="px-3 py-1 bg-red-600/30 text-red-300 rounded text-xs hover:bg-red-600/50 transition-colors"
+                            onclick="window.eliminarActividad('${a.id}')">
+                        Eliminar
+                    </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+    }
+
+
+    /* -------------------------------------
+       GESTIÓN DEL MODAL (CRUD)
+    ------------------------------------- */
+
+    // Abrir modal (nuevo)
+    function abrirModalNuevo() {
+        modoActividad = "create";
+        idActividadActual = null;
+        modalTitulo.textContent = "Nueva actividad";
+        actNombre.value = "";
+        actFecha.value = getTodayDateString(); // Establecer fecha de hoy
+        actFecha.min = getTodayDateString(); // No permitir fechas anteriores
+        actHora.value = "";
+        actLugar.value = "";
+        actDescripcion.value = "";
+        modalActividad.classList.remove("hidden");
+        modalActividad.classList.add("flex");
+        btnGuardarActividad.textContent = "Crear";
+        cargarOpcionesInstalaciones(); // Cargar instalaciones
+    }
+
+    // Abrir modal (editar)
+    window.editarActividad = async (id) => {
+        modoActividad = "edit";
+        idActividadActual = id;
+        modalTitulo.textContent = "Editar actividad";
+        btnGuardarActividad.textContent = "Actualizar";
+        actFecha.min = getTodayDateString(); // No permitir fechas anteriores
+
+        await cargarOpcionesInstalaciones(); // Cargar instalaciones
+
+        const { data, error } = await supabase
+            .from("actividades")
+            .select("id, nombre, fecha, hora, lugar, descripcion")
+            .eq("id", id)
+            .single();
+
+        if (error || !data) {
+            console.error(error);
+            alert("No se pudo cargar la actividad.");
+            return;
+        }
+
+        actNombre.value = data.nombre || "";
+        actFecha.value = data.fecha || "";
+        actHora.value = data.hora ? data.hora.substring(0, 5) : "";
+        actLugar.value = data.lugar || "";
+        actDescripcion.value = data.descripcion || "";
+
+        // Asegurar que el valor cargado de la DB esté seleccionado
+        if (data.lugar) {
+            // Intentamos seleccionar el valor. Si no existe en la lista, el select se queda en la opción por defecto.
+            actLugar.value = data.lugar;
+        }
+
+
+        modalActividad.classList.remove("hidden");
+        modalActividad.classList.add("flex");
+    };
+
+    // Cerrar modal
+    window.cerrarModalActividad = () => {
+        modalActividad.classList.add("hidden");
+        modalActividad.classList.remove("flex");
+    };
+
+    // Guardar (crear o editar)
+    async function guardarActividad() {
+        const nombre = actNombre.value.trim();
+        const fecha = actFecha.value;
+        const hora = actHora.value || null;
+        const lugar = actLugar.value || null; // Tomar el valor seleccionado
+        const descripcion = actDescripcion.value.trim() || null;
+
+        // Validación de campos obligatorios
+        if (!nombre) {
+            alert("El nombre de la actividad es obligatorio.");
+            return;
+        }
+        if (!fecha) {
+            alert("La fecha es obligatoria.");
+            return;
+        }
+        
+        // Validación de fecha no anterior (redundante si el atributo min funciona, pero buena práctica)
+        if (fecha < getTodayDateString()) {
+            alert("La fecha de la actividad no puede ser anterior a la fecha actual.");
+            return;
+        }
+
+        let error;
+
+        if (modoActividad === "create") {
+            const result = await supabase
+                .from("actividades")
+                .insert({ nombre, fecha, hora, lugar, descripcion });
+            error = result.error;
+
+            if (!error) alert("Actividad creada exitosamente.");
+
+        } else if (modoActividad === "edit" && idActividadActual) {
+            const result = await supabase
+                .from("actividades")
+                .update({ nombre, fecha, hora, lugar, descripcion })
+                .eq("id", idActividadActual);
+            error = result.error;
+
+            if (!error) alert("Actividad actualizada exitosamente.");
+        }
+
+        if (error) {
+            console.error(error);
+            alert("Error al guardar la actividad. (Verifique las políticas RLS de la tabla 'actividades')");
+            return;
+        }
+
+        cerrarModalActividad();
+        await cargarActividades();
+    }
+
+    // Eliminar
+    window.eliminarActividad = async (id) => {
+        const ok = confirm("¿Seguro que deseas eliminar esta actividad?");
+        if (!ok) return;
+
+        const { error } = await supabase
+            .from("actividades")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+            console.error(error);
+            alert("Error al eliminar la actividad. (Verifique las políticas RLS)");
+            return;
+        }
+
+        alert("Actividad eliminada exitosamente.");
+        await cargarActividades();
+    };
+
+    // Listeners de botones principales
+    btnRefresh.addEventListener("click", cargarActividades);
+    btnNew.addEventListener("click", abrirModalNuevo);
+    btnGuardarActividad.addEventListener("click", guardarActividad);
+
+
+    // Inicialización
+    (async () => {
+        await verificarAcceso();
+        await cargarActividades();
+    })();
+</script>
+</body>
+</html>

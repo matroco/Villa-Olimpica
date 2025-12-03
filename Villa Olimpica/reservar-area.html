@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+
+    <title>Solicitud de Reserva — Villa Olímpica</title>
+
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Anton&display=swap"
+
+        rel="stylesheet">
+
+
+
+    <style>
+
+        /* Estilos base con degradado deportivo */
+
+        body {
+
+            font-family: "Inter", sans-serif;
+
+            background-color: #0f172a; /* Fondo azul oscuro */
+
+            min-height: 100vh;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: flex-start;
+
+            padding: 40px 16px;
+
+        }
+
+
+
+        /* Contenedor principal estilo institucional */
+
+        .glass-card {
+
+            background-color: #1e293b; /* Azul grisáceo oscuro */
+
+            border-radius: 16px;
+
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+
+            animation: fadeIn 0.8s ease;
+
+        }
+
+
+
+        /* Estilo de los inputs mejorados */
+
+        .form-input {
+
+            background-color: #334155;
+
+            border: 1px solid #475569;
+
+            color: white;
+
+            transition: border-color 0.3s;
+
+        }
+
+        .form-input:focus {
+
+            border-color: #38bdf8;
+
+            outline: none;
+
+        }
+
+       
+
+        /* Título con estilo Anton para un toque deportivo */
+
+        .title-sport {
+
+            font-family: "Anton", sans-serif;
+
+            letter-spacing: 1.5px;
+
+            font-size: 2.5rem;
+
+            text-transform: uppercase;
+
+            color: #38bdf8; /* Azul claro institucional */
+
+            text-shadow: 2px 2px #0f172a;
+
+        }
+
+       
+
+        /* LOADER más grande y visible */
+
+        .loader {
+
+            width: 80px;
+
+            height: 80px;
+
+            border: 8px solid #38bdf8;
+
+            border-top-color: transparent;
+
+            border-radius: 50%;
+
+            animation: spin 1s linear infinite;
+
+        }
+
+
+
+        @keyframes fadeIn {
+
+            from { opacity: 0; transform: translateY(20px); }
+
+            to { opacity: 1; transform: translateY(0); }
+
+        }
+
+        @keyframes spin {
+
+            to { transform: rotate(360deg); }
+
+        }
+
+    </style>
+
+</head>
+
+
+
+<body>
+
+
+
+    <div id="appContainer" class="glass-card w-full max-w-2xl p-8 text-white">
+
+       
+
+        <a href="reservas.html" class="text-sm text-blue-400 hover:text-blue-300 transition-colors block mb-4">
+
+            ← VOLVER A SELECCIÓN
+
+        </a>
+
+
+
+        <h1 class="title-sport text-center mb-4">Solicitud de Reserva</h1>
+
+
+
+        <p id="instalacionInfo" class="text-center text-gray-400 mb-8 text-lg font-semibold border-b border-gray-700 pb-4">Cargando detalles...</p>
+
+       
+
+        <div id="reservationContent" class="hidden">
+
+            <form id="formReserva" class="space-y-6">
+
+
+
+                <fieldset class="border border-blue-500/50 p-6 rounded-lg space-y-4">
+
+                    <legend class="text-xl font-bold text-blue-400 px-2">👤 Datos Personales</legend>
+
+                   
+
+                    <div>
+
+                        <label for="nombre" class="block text-sm font-semibold text-gray-300 mb-1">Nombre completo *</label>
+
+                        <input id="nombre" type="text" required
+
+                            class="form-input w-full p-3 rounded-lg" placeholder="Tu nombre y apellido" readonly>
+
+                        <p class="text-xs text-gray-500 mt-1">Este campo se precarga automáticamente y es de solo lectura.</p>
+
+                    </div>
+
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div>
+
+                            <label for="correo" class="block text-sm font-semibold text-gray-300 mb-1">Correo electrónico *</label>
+
+                            <input id="correo" type="email" required
+
+                                class="form-input w-full p-3 rounded-lg" readonly>
+
+                        </div>
+
+                        <div>
+
+                            <label for="telefono" class="block text-sm font-semibold text-gray-300 mb-1">Teléfono *</label>
+
+                            <input id="telefono" type="tel" required
+
+                                class="form-input w-full p-3 rounded-lg" placeholder="Ej: 809-XXX-XXXX">
+
+                        </div>
+
+                    </div>
+
+                   
+
+                    <div>
+
+                        <label for="institucion" class="block text-sm font-semibold text-gray-300 mb-1">Institución / Club (opcional)</label>
+
+                        <input id="institucion" type="text"
+
+                            class="form-input w-full p-3 rounded-lg" placeholder="Nombre de tu institución o equipo">
+
+                    </div>
+
+                </fieldset>
+
+
+
+
+
+                <fieldset class="border border-green-500/50 p-6 rounded-lg space-y-4">
+
+                    <legend class="text-xl font-bold text-green-400 px-2">📅 Periodo de la Reserva</legend>
+
+                   
+
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <div>
+
+                            <label for="fecha_inicio" class="block text-sm font-semibold text-gray-300 mb-1">Fecha de Inicio *</label>
+
+                            <input id="fecha_inicio" type="date" required
+
+                                class="form-input w-full p-3 rounded-lg">
+
+                        </div>
+
+                        <div>
+
+                            <label for="fecha_fin" class="block text-sm font-semibold text-gray-300 mb-1">Fecha de Fin *</label>
+
+                            <input id="fecha_fin" type="date" required
+
+                                class="form-input w-full p-3 rounded-lg">
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <div>
+
+                            <label for="hora_inicio" class="block text-sm font-semibold text-gray-300 mb-1">Hora de Inicio *</label>
+
+                            <input id="hora_inicio" type="time" required min="08:00" max="22:00" step="3600"
+
+                                class="form-input w-full p-3 rounded-lg">
+
+                        </div>
+
+                        <div>
+
+                            <label for="hora_fin" class="block text-sm font-semibold text-gray-300 mb-1">Hora de Fin *</label>
+
+                            <input id="hora_fin" type="time" required min="09:00" max="23:00" step="3600"
+
+                                class="form-input w-full p-3 rounded-lg">
+
+                        </div>
+
+                    </div>
+
+                     <p class="text-xs text-gray-500 mt-1 text-center">Las reservas deben iniciar después de las 8:00 AM y terminar antes de las 11:00 PM.</p>
+
+                </fieldset>
+
+
+
+                <fieldset class="border border-yellow-500/50 p-6 rounded-lg">
+
+                    <legend class="text-xl font-bold text-yellow-400 px-2">📝 Descripción de la Actividad</legend>
+
+                    <div>
+
+                        <label for="descripcion" class="block text-sm font-semibold text-gray-300 mb-1">Detalles de la Actividad (Opcional)</label>
+
+                        <textarea id="descripcion" rows="3"
+
+                            class="form-input w-full p-3 rounded-lg"
+
+                            placeholder="Detalle el tipo de evento, número de asistentes y requisitos especiales."></textarea>
+
+                    </div>
+
+                </fieldset>
+
+
+
+
+
+                <button type="submit" id="submitButton"
+
+                    class="w-full py-3 mt-6 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-xl transition-colors shadow-lg shadow-blue-900/40">
+
+                    Enviar Solicitud de Reserva
+
+                </button>
+
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+   
+
+    <div id="mainLoader" class="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
+
+        <div class="loader"></div>
+
+    </div>
+
+
+
+
+
+    <script type="module">
+
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+
+
+        // --- CONFIGURACIÓN DE SUPABASE ---
+
+        const SUPABASE_URL = "https://wzovzfrrgknhvcozektc.supabase.co";
+
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6b3Z6ZnJyZ2tuaHZjb3pla3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzYyMTAsImV4cCI6MjA3ODExMjIxMH0.zhbQqSEje7RGhZpJlUEaGZ07nuCOCamQI7S97rf-Tfo";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+       
+
+        // --- Variables Globales ---
+
+        let loggedUserId = null;
+
+        const params = new URLSearchParams(window.location.search);
+
+        const instalacionId = params.get("instalacion");
+
+
+
+        const instalacionNames = {
+
+            'palacio_deportes': 'Palacio de los Deportes 🏀',
+
+            'pabellon_gimnasia': 'Pabellón de Gimnasia 🤸',
+
+            'piscina_olimpica': 'Piscina Olímpica 🏊',
+
+            'campo_pista': 'Campo y Pista 🏃',
+
+            'canchas_aire_libre': 'Canchas Exteriores 🎾'
+
+        };
+
+
+
+        // --- LÓGICA DE CARGA Y AUTENTICACIÓN ---
+
+        document.addEventListener("DOMContentLoaded", async () => {
+
+            const mainLoader = document.getElementById("mainLoader");
+
+            const instalacionInfo = document.getElementById("instalacionInfo");
+
+            const reservationContent = document.getElementById("reservationContent");
+
+
+
+            // 1. Obtener usuario y autenticar
+
+            const { data: { user } } = await supabase.auth.getUser();
+
+
+
+            if (!user) {
+
+                // Redirigir al login si no hay usuario
+
+                Swal.fire({
+
+                    title: 'Acceso Denegado', text: 'Debes iniciar sesión para reservar.', icon: 'error'
+
+                }).then(() => {
+
+                    localStorage.setItem('redirectAfterLogin', window.location.href);
+
+                    window.location.href = 'login.html';
+
+                });
+
+                return;
+
+            }
+
+           
+
+            loggedUserId = user.id;
+
+
+
+            if (!instalacionId || !instalacionNames[instalacionId]) {
+
+                 mainLoader.classList.add("hidden");
+
+                 Swal.fire('Error', 'Instalación no especificada o inválida.', 'error').then(() => {
+
+                    window.location.href = 'reservas.html';
+
+                 });
+
+                 return;
+
+            }
+
+           
+
+            instalacionInfo.textContent = instalacionNames[instalacionId];
+
+
+
+            // 2. Precargar datos del usuario
+
+            // Asumimos que tienes una tabla 'usuarios' con 'id' (referencia a auth.users(id)), 'nombre', 'telefono'
+
+            const { data: profile, error: profileError } = await supabase
+
+                .from("usuarios")
+
+                .select("nombre, telefono")
+
+                .eq("id", loggedUserId) // CRÍTICO: Debe coincidir con la columna que usas para el usuario en tu tabla 'usuarios'
+
+                .single();
+
+           
+
+            if (profile) {
+
+                document.getElementById('nombre').value = profile.nombre || 'N/A';
+
+                document.getElementById('telefono').value = profile.telefono || '';
+
+            } else {
+
+                 // Si el perfil no existe, usa el ID del usuario como nombre para asegurar que el campo no esté vacío
+
+                 document.getElementById('nombre').value = user.id;
+
+                 console.warn("No se pudo cargar el perfil detallado del usuario.");
+
+            }
+
+            // El correo siempre viene de la sesión
+
+            document.getElementById('correo').value = user.email;
+
+
+
+            // 3. Establecer validaciones y listeners
+
+            setupFormValidations();
+
+           
+
+            // 4. Mostrar contenido
+
+            reservationContent.classList.remove("hidden");
+
+            mainLoader.classList.add("hidden");
+
+        });
+
+       
+
+        function setupFormValidations() {
+
+            const formReserva = document.getElementById("formReserva");
+
+            const fecha_inicio = document.getElementById("fecha_inicio");
+
+            const fecha_fin = document.getElementById("fecha_fin");
+
+            const hora_inicio = document.getElementById("hora_inicio");
+
+            const hora_fin = document.getElementById("hora_fin");
+
+           
+
+            // Fecha Mínima: Mañana
+
+            const tomorrow = new Date();
+
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const minDate = tomorrow.toISOString().split("T")[0];
+
+            fecha_inicio.min = minDate;
+
+            fecha_fin.min = minDate;
+
+
+
+            fecha_inicio.addEventListener("change", () => {
+
+                fecha_fin.min = fecha_inicio.value;
+
+                if (fecha_fin.value < fecha_inicio.value) {
+
+                    fecha_fin.value = fecha_inicio.value;
+
+                }
+
+                validarHoras();
+
+            });
+
+           
+
+            fecha_fin.addEventListener("change", validarHoras);
+
+            hora_inicio.addEventListener("change", validarHoras);
+
+            hora_fin.addEventListener("change", validarHoras);
+
+
+
+            function validarHoras() {
+
+                // Valida que hora_fin > hora_inicio SI y SOLO SI las fechas son iguales.
+
+                // Si fecha_fin > fecha_inicio, la validación pasa automáticamente (gracias al CHECK de la DB).
+
+                if (fecha_inicio.value === fecha_fin.value && hora_fin.value <= hora_inicio.value) {
+
+                    hora_fin.setCustomValidity("La hora final debe ser posterior a la hora inicial en el mismo día.");
+
+                } else {
+
+                    hora_fin.setCustomValidity("");
+
+                }
+
+            }
+
+           
+
+            // Listener de envío
+
+            formReserva.addEventListener("submit", handleReservationSubmit);
+
+        }
+
+
+
+        // --- MANEJO DE ENVÍO DE RESERVA ---
+
+        async function handleReservationSubmit(e) {
+
+            e.preventDefault();
+
+            const submitButton = document.getElementById("submitButton");
+
+            submitButton.disabled = true;
+
+            submitButton.textContent = 'Enviando...';
+
+            document.getElementById("mainLoader").classList.remove("hidden");
+
+
+
+            const data = {
+
+                // Datos críticos de Supabase y RLS
+
+                user_id: loggedUserId,
+
+                instalacion_id: instalacionId,
+
+               
+
+                // Datos de la tabla 'reservas'
+
+                nombre_completo: nombre.value,
+
+                telefono: telefono.value,
+
+                institucion: institucion.value || null,
+
+                correo: correo.value,
+
+                fecha_inicio: fecha_inicio.value,
+
+                fecha_fin: fecha_fin.value,
+
+                // Supabase requiere HH:MM:SS para el tipo 'time'
+
+                hora_inicio: hora_inicio.value + ':00',
+
+                hora_fin: hora_fin.value + ':00',
+
+                descripcion: descripcion.value || null,
+
+                estado: 'pendiente'
+
+            };
+
+
+
+            const { error } = await supabase.from("reservas").insert([data]);
+
+           
+
+            document.getElementById("mainLoader").classList.add("hidden");
+
+            submitButton.disabled = false;
+
+            submitButton.textContent = 'Enviar Solicitud de Reserva';
+
+
+
+            if (error) {
+
+                console.error("Error al registrar reserva:", error);
+
+                Swal.fire({
+
+                    title: 'Error de Solicitud ❌',
+
+                    html: `No se pudo registrar la reserva. Posiblemente un conflicto de horarios, datos inválidos o un error de RLS. <br><br> ${error.message}`,
+
+                    icon: 'error'
+
+                });
+
+                return;
+
+            }
+
+
+
+            Swal.fire({
+
+                title: '¡Reserva Solicitada! 🎉',
+
+                text: 'Tu solicitud ha sido enviada para revisión. Te notificaremos por correo.',
+
+                icon: 'success',
+
+                confirmButtonText: 'Ir a Mis Reservas',
+
+                confirmButtonColor: '#38bdf8'
+
+            }).then(() => {
+
+                 window.location.href = 'reservas.html?tab=historial'; // Redirige al historial
+
+            });
+
+
+
+            formReserva.reset();
+
+        }
+
+    </script>
+
+
+
+</body>
+
+
+
+</html>
